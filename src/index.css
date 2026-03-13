@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-softGray text-navy font-sans antialiased selection:bg-teal-200 selection:text-teal-900;
+  }
+}

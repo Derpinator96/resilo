@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { MapPin, ArrowRight, Sparkles, BatteryCharging, CloudRain, Activity, School, Hospital } from 'lucide-react'
+import { MapPin, ArrowRight, School, Hospital } from 'lucide-react'
 
 // Array of the 33 districts in Chhattisgarh
 const districts = [
@@ -10,6 +10,43 @@ const districts = [
   "Mohla-Manpur-Ambagarh Chowki", "Mungeli", "Narayanpur", "Raigarh", "Raipur", "Rajnandgaon", "Sakti", 
   "Sarangarh-Bilaigarh", "Sukma", "Surajpur", "Surguja", "Khairagarh-Chhuikhadan-Gandai"
 ].sort()
+
+// Counts of Schools and Healthcare elements manually pulled from offline records
+const districtStats = {
+  "Balod": { schools: 1569, healthcare: 235 },
+  "Baloda Bazar": { schools: 2229, healthcare: 207 },
+  "Balrampur": { schools: 2195, healthcare: 229 },
+  "Bastar": { schools: 2448, healthcare: 280 },
+  "Bemetara": { schools: 1433, healthcare: 163 },
+  "Bijapur": { schools: 952, healthcare: 114 },
+  "Bilaspur": { schools: 3205, healthcare: 247 },
+  "Dantewada": { schools: 895, healthcare: 98 },
+  "Dhamtari": { schools: 1712, healthcare: 200 },
+  "Durg": { schools: 1660, healthcare: 162 },
+  "Gariaband": { schools: 1656, healthcare: 225 },
+  "Gaurela Pendra Marwahi": { schools: 800, healthcare: 95 },
+  "Janjgir-Champa": { schools: 2913, healthcare: 196 },
+  "Jashpur": { schools: 2633, healthcare: 304 },
+  "Kabirdham": { schools: 1789, healthcare: 179 },
+  "Kanker": { schools: 2601, healthcare: 292 },
+  "Kondagaon": { schools: 2061, healthcare: 203 },
+  "Korba": { schools: 2436, healthcare: 300 },
+  "Koriya": { schools: 1680, healthcare: 109 },
+  "Mahasamund": { schools: 2137, healthcare: 261 },
+  "Manendragarh-Chirmiri-Bharatpur": { schools: 800, healthcare: 122 },
+  "Mohla-Manpur-Ambagarh Chowki": { schools: 800, healthcare: 98 },
+  "Mungeli": { schools: 1121, healthcare: 151 },
+  "Narayanpur": { schools: 623, healthcare: 75 },
+  "Raigarh": { schools: 3493, healthcare: 312 },
+  "Raipur": { schools: 2356, healthcare: 175 },
+  "Rajnandgaon": { schools: 3164, healthcare: 177 },
+  "Sakti": { schools: 900, healthcare: 141 },
+  "Sarangarh-Bilaigarh": { schools: 900, healthcare: 138 },
+  "Sukma": { schools: 1052, healthcare: 115 },
+  "Surajpur": { schools: 2249, healthcare: 259 },
+  "Surguja": { schools: 2265, healthcare: 233 },
+  "Khairagarh-Chhuikhadan-Gandai": { schools: 800, healthcare: 100 }
+}
 
 // Coordinates of districts
 const districtCoords = {
@@ -65,22 +102,13 @@ export default function Dashboard() {
   const coords = districtCoords[selectedDistrict]
 
   const mapSrc = coords
-    ? `https://embed.windy.com/embed2.html?lat=${coords[0]}&lon=${coords[1]}&zoom=13&level=surface&overlay=rain`
+    ? `https://embed.windy.com/embed2.html?lat=${coords[0]}&lon=${coords[1]}&zoom=11&level=surface&overlay=rain`
     : null
 
-  const modules = [
-    { title: "Sanitation", path: "/sanitation", color: "bg-blue-50 text-blue-700", icon: Sparkles },
-    { title: "Energy", path: "/energy", color: "bg-amber-50 text-amber-700", icon: BatteryCharging },
-    { title: "Weather", path: "/weather", color: "bg-cyan-50 text-cyan-700", icon: CloudRain },
-    { title: "Water", path: "/water", color: "bg-teal-50 text-teal-700", icon: Activity }
+  const categories = [
+    { title: "Schools", type: "School", color: "bg-teal-50 text-teal-700", icon: School },
+    { title: "Healthcare Centers", type: "Healthcare", color: "bg-blue-50 text-blue-700", icon: Hospital },
   ]
-
-  const moduleKeyMap = {
-    Sanitation: "sanitation",
-    Energy: "energy",
-    Weather: "weather",
-    Water: "water"
-  }
 
   return (
     <div className="min-h-screen px-4 py-8 bg-gray-50 lg:px-8">
@@ -121,76 +149,25 @@ export default function Dashboard() {
             <div className="flex flex-wrap gap-4 px-2">
               <div className="flex items-center gap-2.5 px-4 py-2 bg-white border border-gray-100 rounded-lg shadow-sm">
                 <School size={18} className="text-teal-600" />
-                <span className="font-semibold text-slate-700">1 School</span>
+                <span className="font-semibold text-slate-700">
+                  {districtStats[selectedDistrict]?.schools || 0} Schools
+                </span>
               </div>
 
               <div className="flex items-center gap-2.5 px-4 py-2 bg-white border border-gray-100 rounded-lg shadow-sm">
                 <Hospital size={18} className="text-blue-600" />
-                <span className="font-semibold text-slate-700">1 Health Centre</span>
+                <span className="font-semibold text-slate-700">
+                  {districtStats[selectedDistrict]?.healthcare || 0} Health Centres
+                </span>
               </div>
             </div>
           )}
 
         </div>
 
-        {/* Module Hub */}
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:gap-8">
-
-          {modules.map((mod) => {
-
-            const key = moduleKeyMap[mod.title]
-            const data = districtData[selectedDistrict]?.[key]
-
-            return (
-              <button
-                key={mod.title}
-                onClick={() => navigate(mod.path)}
-                className="group relative flex flex-col justify-between p-8 overflow-hidden text-left bg-white border border-gray-100 rounded-3xl shadow-sm hover:shadow-lg transition-all duration-300 min-h-[190px]"
-              >
-
-                <div>
-                  <div className={`inline-flex items-center justify-center w-14 h-14 mb-4 rounded-2xl ${mod.color}`}>
-                    <mod.icon size={26} strokeWidth={2.5} />
-                  </div>
-
-                  <h3 className="text-xl font-bold text-slate-800 mb-2">{mod.title}</h3>
-
-                  {data && (
-                    <div className="text-sm text-gray-500 space-y-1">
-
-                      {Object.entries(data)
-                        .filter(([k]) => k !== "risk")
-                        .slice(0,2)
-                        .map(([k,v]) => (
-                          <div key={k}>
-                            {k.toUpperCase()}: {v}
-                          </div>
-                        ))
-                      }
-
-                      <div className="font-semibold text-slate-700">
-                        Overall Risk: {data.risk}
-                      </div>
-
-                    </div>
-                  )}
-
-                </div>
-
-                <div className="absolute flex items-center justify-center w-12 h-12 transition-all duration-300 transform translate-x-4 opacity-0 right-6 bottom-8 group-hover:translate-x-0 group-hover:opacity-100 bg-gray-50 rounded-full text-slate-400">
-                  <ArrowRight size={24} />
-                </div>
-
-              </button>
-            )
-          })}
-
-        </div>
-
-        {/* Windy Map */}
+        {/* Windy Map (District-Wide Climate) */}
         {mapSrc && (
-          <div className="mt-12 overflow-hidden bg-white border border-gray-100 shadow-sm rounded-3xl">
-
+          <div className="mb-12 overflow-hidden bg-white border border-gray-100 shadow-sm rounded-3xl animate-fade-in">
             <div className="px-6 py-4 border-b">
               <h2 className="text-xl font-semibold text-slate-800">
                 Live Climate Risk Map – {selectedDistrict}
@@ -199,15 +176,40 @@ export default function Dashboard() {
                 Wind speed, rainfall and storm conditions in the surrounding area
               </p>
             </div>
-
             <iframe
               title="Windy Map"
               src={mapSrc}
               width="100%"
-              height="500"
+              height="400"
               frameBorder="0"
             ></iframe>
+          </div>
+        )}
 
+        {/* Institute Category Hub */}
+        {selectedDistrict && (
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:gap-8 animate-fade-in">
+            {categories.map((cat) => (
+              <button
+                key={cat.title}
+                onClick={() => navigate(`/list/${selectedDistrict}/${cat.type}`)}
+                className="group relative flex flex-col justify-between p-8 overflow-hidden text-left bg-white border border-gray-100 rounded-3xl shadow-sm hover:shadow-lg transition-all duration-300 min-h-[190px] active:scale-95"
+              >
+                <div>
+                  <div className={`inline-flex items-center justify-center w-14 h-14 mb-4 rounded-2xl ${cat.color}`}>
+                    <cat.icon size={26} strokeWidth={2.5} />
+                  </div>
+                  <h3 className="text-2xl font-bold text-slate-800 mb-2">{cat.title}</h3>
+                  <p className="text-sm text-gray-500">
+                    View resilience profiles for {cat.type === 'School' ? districtStats[selectedDistrict]?.schools : districtStats[selectedDistrict]?.healthcare} local {cat.title.toLowerCase()}
+                  </p>
+                </div>
+
+                <div className="absolute flex items-center justify-center w-12 h-12 transition-all duration-300 transform translate-x-4 opacity-0 right-6 bottom-8 group-hover:translate-x-0 group-hover:opacity-100 bg-gray-50 rounded-full text-slate-400">
+                  <ArrowRight size={24} />
+                </div>
+              </button>
+            ))}
           </div>
         )}
 

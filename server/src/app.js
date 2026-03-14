@@ -15,4 +15,15 @@ app.use(express.static("public"))
 app.use(cookieParser())
 
 
+import userRouter from './routes/user.routes.js'
+import solarRouter from "./routes/solar.routes.js"
+import waterRouter from "./routes/water.routes.js"
+import weatherRouter from "./routes/weather.routes.js"             
 
+
+app.use("/api/v1/Solardata", solarRouter)
+app.use("/api/v1/Userdata", userRouter)
+app.use("/api/v1/Waterdata", waterRouter)
+app.use("/api/v1/Weatherdata", weatherRouter)
+
+export { app }

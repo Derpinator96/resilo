@@ -1,0 +1,163 @@
+﻿
+> server@1.0.0 start
+> node --dns-result-order=ipv4first server.js
+
+[dotenv@17.3.1] injecting env (1) from .env -- tip: ΓÜÖ∩╕Å  override existing env vars with { override: true }
+node.exe : (node:42464) 
+[DEP0040] 
+DeprecationWarning: The 
+`punycode` module is 
+deprecated. Please use a 
+userland alternative 
+instead.
+At C:\Program 
+Files\nodejs\npm.ps1:29 
+char:3
++   & $NODE_EXE 
+$NPM_CLI_JS $args
++   ~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~
+    + CategoryInfo        
+      : NotSpeci    fied: 
+((node:4246    4) 
+[D...native in    
+stead.:String) []    , 
+RemoteException
+    + FullyQualifiedE    
+rrorId : NativeCo    
+mmandError
+ 
+(Use `node 
+--trace-deprecation ...` 
+to show where the warning 
+was created)
+≡ƒÜÇ RESILO Backend running on http://localhost:5000
+MongoDB connection error: 
+MongooseServerSelectionErr
+or: connect ECONNREFUSED 
+127.0.0.1:27017
+    at 
+_handleConnectionErrors (E
+:\derpinat\resilo1\server\
+node_modules\mongoose\lib\
+connection.js:1168:11)
+    at 
+NativeConnection.openUri (
+E:\derpinat\resilo1\server
+\node_modules\mongoose\lib
+\connection.js:1099:11) {
+  errorLabelSet: Set(0) 
+{},
+  reason: 
+TopologyDescription {
+    type: 'Unknown',
+    servers: Map(1) { 
+'127.0.0.1:27017' => 
+[ServerDescription] },
+    stale: false,
+    compatible: true,
+    heartbeatFrequencyMS: 
+10000,
+    localThresholdMS: 15,
+    setName: null,
+    maxElectionId: null,
+    maxSetVersion: null,
+    commonWireVersion: 0,
+    logicalSessionTimeoutM
+inutes: null
+  },
+  code: undefined,
+  cause: 
+TopologyDescription {
+    type: 'Unknown',
+    servers: Map(1) { 
+'127.0.0.1:27017' => 
+[ServerDescription] },
+    stale: false,
+    compatible: true,
+    heartbeatFrequencyMS: 
+10000,
+    localThresholdMS: 15,
+    setName: null,
+    maxElectionId: null,
+    maxSetVersion: null,
+    commonWireVersion: 0,
+    logicalSessionTimeoutM
+inutes: null
+  }
+}
+Seed error: 
+MongooseError: Operation 
+`institutes.deleteMany()` 
+buffering timed out after 
+10000ms
+    at Timeout._onTimeout 
+(E:\derpinat\resilo1\serve
+r\node_modules\mongoose\li
+b\drivers\node-mongodb-nat
+ive\collection.js:131:25)
+    at listOnTimeout (node
+:internal/timers:594:17)
+    at 
+process.processTimers (nod
+e:internal/timers:529:7)
+Institute Fetch Error: 
+MongooseError: Operation 
+`institutes.find()` 
+buffering timed out after 
+10000ms
+    at Timeout._onTimeout 
+(E:\derpinat\resilo1\serve
+r\node_modules\mongoose\li
+b\drivers\node-mongodb-nat
+ive\collection.js:131:25)
+    at listOnTimeout (node
+:internal/timers:594:17)
+    at 
+process.processTimers (nod
+e:internal/timers:529:7)
+Institute Fetch Error: 
+MongooseError: Operation 
+`institutes.find()` 
+buffering timed out after 
+10000ms
+    at Timeout._onTimeout 
+(E:\derpinat\resilo1\serve
+r\node_modules\mongoose\li
+b\drivers\node-mongodb-nat
+ive\collection.js:131:25)
+    at listOnTimeout (node
+:internal/timers:594:17)
+    at 
+process.processTimers (nod
+e:internal/timers:529:7)
+Institute Fetch Error: 
+MongooseError: Operation 
+`institutes.find()` 
+buffering timed out after 
+10000ms
+    at Timeout._onTimeout 
+(E:\derpinat\resilo1\serve
+r\node_modules\mongoose\li
+b\drivers\node-mongodb-nat
+ive\collection.js:131:25)
+    at listOnTimeout (node
+:internal/timers:594:17)
+    at 
+process.processTimers (nod
+e:internal/timers:529:7)
+Institute Fetch Error: 
+MongooseError: Operation 
+`institutes.find()` 
+buffering timed out after 
+10000ms
+    at Timeout._onTimeout 
+(E:\derpinat\resilo1\serve
+r\node_modules\mongoose\li
+b\drivers\node-mongodb-nat
+ive\collection.js:131:25)
+    at listOnTimeout (node
+:internal/timers:594:17)
+    at 
+process.processTimers (nod
+e:internal/timers:529:7)

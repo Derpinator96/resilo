@@ -1,9 +1,9 @@
 import { Router } from "express";
-import {  
-} from "../controllers/weatherdata.controller.js";
+import { getWeatherData } from "../controllers/weatherdata.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
+const router = Router();
 
-const router = Router()
+router.get("/", verifyJWT, getWeatherData);
 
-export default router
+export default router;

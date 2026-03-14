@@ -122,39 +122,62 @@ export default function Sanitation() {
           )}
 
           {scanState === 'complete' && aiResult && (
-            <div className={`p-8 bg-white border shadow-lg rounded-3xl lg:p-10 border-t-8 ${aiResult.hygieneScore > 60 ? 'border-t-green-500 border-green-200' : 'border-t-orange-500 border-orange-200'}`}>
+            <div className={`p-8 bg-white border shadow-lg rounded-3xl lg:p-10 border-t-8 ${
+              aiResult.hygieneStatus.toLowerCase().includes('good') || aiResult.hygieneStatus.toLowerCase().includes('clean') 
+                ? 'border-t-green-500 border-green-200' 
+                : 'border-t-red-600 border-red-200 bg-red-50'
+            }`}>
               <div className="flex items-start gap-5">
-                <div className={`p-3 rounded-full shrink-0 ${aiResult.hygieneScore > 60 ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-600'}`}>
-                  {aiResult.hygieneScore > 60 ? <CheckCircle2 size={32} /> : <AlertTriangle size={32} />}
+                <div className={`p-3 rounded-full shrink-0 ${
+                  aiResult.hygieneStatus.toLowerCase().includes('good') || aiResult.hygieneStatus.toLowerCase().includes('clean') 
+                    ? 'bg-green-100 text-green-600' 
+                    : 'bg-red-100 text-red-600'
+                }`}>
+                  <AlertTriangle size={32} />
                 </div>
                 <div className="w-full">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-2xl font-bold text-slate-900">Hygiene Score</h3>
-                    <span className={`text-2xl font-black ${aiResult.hygieneScore > 60 ? 'text-green-600' : 'text-orange-600'}`}>{aiResult.hygieneScore}/100</span>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-2xl font-bold text-slate-900">Risk Profile</h3>
                   </div>
                   
-                  <p className="text-gray-600 font-medium mb-4">
-                    Status: <span className="text-slate-900">{aiResult.status}</span>
-                  </p>
+                  <div className="p-4 bg-white border shadow-sm rounded-xl mb-4">
+                    <p className="text-xs font-bold tracking-wider text-gray-500 uppercase mb-1">General Hygiene Status</p>
+                    <p className="text-lg font-semibold text-slate-800">{aiResult.hygieneStatus}</p>
+                  </div>
 
-                  <div className="p-4 bg-gray-50 border border-gray-100 rounded-2xl mb-5">
-                     <p className="text-xs font-bold tracking-wider text-gray-400 uppercase mb-3">Detected Issues</p>
-                     {aiResult.detectedIssues && aiResult.detectedIssues.length > 0 ? (
+                  <div className="p-4 bg-white border shadow-sm rounded-xl mb-4">
+                     <p className="text-xs font-bold tracking-wider text-gray-500 uppercase mb-3">Visible Contaminants</p>
+                     {aiResult.visibleContaminants && aiResult.visibleContaminants.length > 0 ? (
+                       <div className="flex flex-wrap gap-2">
+                         {aiResult.visibleContaminants.map((item, idx) => (
+                           <span key={idx} className="px-3 py-1 text-sm font-medium text-amber-800 bg-amber-100 rounded-lg">
+                             {item}
+                           </span>
+                         ))}
+                       </div>
+                     ) : (
+                       <p className="text-sm text-gray-500 italic">None detected.</p>
+                     )}
+                  </div>
+
+                  <div className="p-4 bg-white border shadow-sm rounded-xl mb-6">
+                     <p className="text-xs font-bold tracking-wider text-gray-500 uppercase mb-3">Potential Outbreaks</p>
+                     {aiResult.potentialDiseases && aiResult.potentialDiseases.length > 0 ? (
                        <ul className="space-y-2">
-                         {aiResult.detectedIssues.map((issue, idx) => (
-                           <li key={idx} className="flex items-start gap-2 text-sm text-slate-700">
-                             <div className="w-1.5 h-1.5 rounded-full bg-orange-400 mt-1.5 shrink-0"></div>
-                             {issue}
+                         {aiResult.potentialDiseases.map((disease, idx) => (
+                           <li key={idx} className="flex items-start gap-2 text-sm font-bold text-red-700">
+                             <div className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 shrink-0"></div>
+                             {disease}
                            </li>
                          ))}
                        </ul>
                      ) : (
-                       <p className="text-sm text-gray-500 italic">No significant issues visually detected.</p>
+                       <p className="text-sm text-gray-500 italic">No immediate disease vectors identified.</p>
                      )}
                   </div>
 
                   <button onClick={resetScan} className="font-bold text-teal-600 hover:text-teal-700">
-                    Scan another room
+                    Scan another area
                   </button>
                 </div>
               </div>

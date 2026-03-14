@@ -1,37 +1,45 @@
-import mongoose from 'mongoose';
+import mongoose from 'mongoose'
 
 const instituteSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-  },
-  type: {
-    type: String,
-    enum: ['School', 'Healthcare'],
-    required: true,
-  },
-  district: {
-    type: String,
-    required: true,
-  },
-  isMock: {
-    type: Boolean,
-    default: true,
-  },
+  name: String,
+  type: String,
+  district: String,
+  isMock: { type: Boolean, default: false },
   waterQuality: {
-    type: String,
-    default: 'Unknown',
+    ph: Number,
+    tds: Number,
+    turbidity: Number,
+    statusDesc: String
   },
   waterLevel: {
-    type: Number,
-    default: 0,
+    level: Number,
+    pumpStatus: String,
+    statusDesc: String
   },
-  solarHealth: {
-    type: String,
-    default: 'Unknown',
+  solarGrid: {
+    generation: Number,
+    efficiency: Number,
+    statusDesc: String
   },
-}, { timestamps: true });
+  battery: {
+    level: Number,
+    health: String
+  },
+  electricity: {
+    isAvailable: Boolean
+  },
+  powerCuts: {
+    history: [String],
+    frequency: String
+  },
+  infraClimate: {
+    temp: Number,
+    humidity: Number
+  },
+  equipmentHealth: {
+    medicineFridgeTemp: Number,
+    statusDesc: String
+  }
+})
 
-const Institute = mongoose.model('Institute', instituteSchema);
-
-export default Institute;
+export default mongoose.models.Institute || mongoose.model('Institute', instituteSchema)

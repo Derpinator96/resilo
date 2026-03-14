@@ -1,10 +1,12 @@
 import { Routes, Route, Link, useLocation } from 'react-router-dom'
 import { Sparkles } from 'lucide-react'
+import { AuthProvider } from './context/AuthContext'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Sanitation from './pages/Sanitation'
 import InstituteList from './pages/InstituteList'
 import InstituteDetail from './pages/InstituteDetail'
+import AuthorityDashboard from './pages/AuthorityDashboard'
 import AIChat from './pages/AIChat'
 
 function GlobalLayout({ children }) {
@@ -31,16 +33,19 @@ function GlobalLayout({ children }) {
 
 function App() {
   return (
-    <GlobalLayout>
-      <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/sanitation" element={<Sanitation />} />
-        <Route path="/list/:district/:type" element={<InstituteList />} />
-        <Route path="/institute/:id" element={<InstituteDetail />} />
-        <Route path="/AIChat" element={<AIChat />} />
-      </Routes>
-    </GlobalLayout>
+    <AuthProvider>
+      <GlobalLayout>
+        <Routes>
+          <Route path="/" element={<Login />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/sanitation" element={<Sanitation />} />
+          <Route path="/list/:district/:type" element={<InstituteList />} />
+          <Route path="/institute/:id" element={<InstituteDetail />} />
+          <Route path="/authority" element={<AuthorityDashboard />} />
+          <Route path="/AIChat" element={<AIChat />} />
+        </Routes>
+      </GlobalLayout>
+    </AuthProvider>
   )
 }
 

@@ -63,12 +63,12 @@ export default function InstituteList() {
           Back to Dashboard
         </button>
 
-        <header className="mb-8">
-          <div className="flex items-center gap-3 text-sm font-semibold text-teal-600 uppercase tracking-widest mb-3">
-            <MapPin size={16} /> {district} District
+        <header className="mb-10 animate-slide-up">
+          <div className="flex items-center gap-3 text-sm font-black text-indigo-600 uppercase tracking-widest mb-3">
+            <MapPin size={18} /> {district} District
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">{type} Facilities</h1>
-          <p className="mt-1 text-gray-500 text-lg">Select a facility to view its resilience profile</p>
+          <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">{type} <span className="text-gradient">Facilities</span></h1>
+          <p className="mt-2 text-slate-500 text-lg">Select a facility to view its high-density resilience profile.</p>
         </header>
 
         {loading ? (
@@ -89,7 +89,7 @@ export default function InstituteList() {
               <button
                 key={inst._id}
                 onClick={() => navigate(`/institute/${inst._id}`, { state: inst })}
-                className="flex items-center justify-between p-6 text-left transition-all duration-300 bg-white border border-gray-100 shadow-sm rounded-2xl hover:shadow-md active:scale-[0.98]"
+                className="flex items-center justify-between p-6 text-left transition-all duration-300 bg-white border border-slate-100 shadow-lg shadow-slate-200/50 rounded-3xl hover:shadow-xl hover:-translate-y-1 active:scale-[0.98] animate-fade-in"
               >
                 <div className="flex items-center gap-5">
                   <div className={`p-4 rounded-xl shrink-0 ${type === 'School' ? 'bg-teal-50 text-teal-600' : 'bg-blue-50 text-blue-600'}`}>

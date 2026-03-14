@@ -11,19 +11,15 @@ export default function AuthorityDashboard() {
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('Active')
   
-  // AI Suggestion State Map: { [reportId]: "suggestion string" }
   const [suggestions, setSuggestions] = useState({})
   const [generatingFor, setGeneratingFor] = useState(null)
 
   useEffect(() => {
-    // Redirect if not auth
     if (!user || user.role !== 'Authority') {
       navigate('/')
       return
     }
     fetchReports()
-    
-    // Auto-refresh mimicking PagerDuty pulse
     const interval = setInterval(fetchReports, 10000)
     return () => clearInterval(interval)
   }, [user, navigate])
@@ -43,7 +39,7 @@ export default function AuthorityDashboard() {
   const handleResolve = async (id) => {
     try {
       await fetch(`http://localhost:5000/api/reports/${id}/resolve`, { method: 'PUT' })
-      fetchReports() // re-fetch to move to History tab
+      fetchReports() 
     } catch (error) {
       console.error(error)
     }
@@ -84,8 +80,6 @@ export default function AuthorityDashboard() {
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 font-sans">
-      
-      {/* Top Navigation Bar */}
       <nav className="flex items-center justify-between px-6 py-4 bg-slate-800 border-b border-slate-700">
         <div className="flex items-center gap-4">
           <div className="p-2 bg-rose-500/20 text-rose-500 rounded-lg">
@@ -113,9 +107,7 @@ export default function AuthorityDashboard() {
         </div>
       </nav>
 
-      {/* Main Content Pane */}
       <div className="max-w-7xl mx-auto px-6 py-8">
-        
         <div className="flex gap-4 mb-8">
           <button 
             onClick={() => setActiveTab('Active')}
@@ -135,7 +127,6 @@ export default function AuthorityDashboard() {
           </button>
         </div>
 
-        {/* Display List based on Tab */}
         <div className="space-y-4">
           {(activeTab === 'Active' ? activeReports : historyReports).length === 0 ? (
             <div className="py-20 text-center border-2 border-dashed border-slate-700 rounded-3xl">
@@ -171,7 +162,6 @@ export default function AuthorityDashboard() {
                         <p className="text-slate-300">"{report.description}"</p>
                       </div>
 
-                      {/* AI Action Interface */}
                       {report.status === 'Active' && (
                         <div className="mt-4">
                           {suggestions[report._id] ? (
@@ -193,7 +183,6 @@ export default function AuthorityDashboard() {
                         </div>
                       )}
 
-                      {/* Display Resolution Time in History Tab */}
                       {report.status === 'Resolved' && report.resolvedAt && (
                         <div className="mt-4 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-400 text-sm font-bold flex items-center gap-2">
                           <CheckCircle size={16} /> Resolved {timeAgo(report.resolvedAt)}
@@ -202,7 +191,6 @@ export default function AuthorityDashboard() {
                     </div>
                   </div>
 
-                  {/* Right Side Action Button */}
                   {report.status === 'Active' && (
                     <button 
                       onClick={() => handleResolve(report._id)}

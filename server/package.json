@@ -4,20 +4,24 @@
   "main": "server.js",
   "type": "module",
   "scripts": {
-    "start": "node --dns-result-order=ipv4first server.js"
+    "dev": "nodemon src/index.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "form-data": "^4.0.5",
     "jimp": "^0.22.12",
+    "jsonwebtoken": "^9.0.3",
     "mongodb-memory-server": "^11.0.1",
     "mongoose": "^9.3.0",
     "multer": "^2.1.1",
+    "nodemon": "^3.1.14",
     "openai": "^6.29.0"
   }
 }

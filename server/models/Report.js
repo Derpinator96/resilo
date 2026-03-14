@@ -1,38 +1,14 @@
-import mongoose from 'mongoose';
+import mongoose from 'mongoose'
 
 const reportSchema = new mongoose.Schema({
-  instituteId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Institute',
-    required: true,
-  },
-  instituteName: {
-    type: String,
-    required: true,
-  },
-  component: {
-    type: String, // e.g., 'Solar Grid', 'Medicine Refrigerator', 'Water Quality'
-    required: true,
-  },
-  type: {
-    type: String,
-    enum: ['Manual', 'Auto'],
-    required: true,
-  },
-  description: {
-    type: String,
-    required: true,
-  },
-  status: {
-    type: String,
-    enum: ['Active', 'Resolved'],
-    default: 'Active',
-  },
-  resolvedAt: {
-    type: Date,
-  },
-}, { timestamps: true });
+  instituteId: String,
+  instituteName: String,
+  component: String,
+  type: { type: String, enum: ['Manual', 'Auto'] },
+  status: { type: String, enum: ['Active', 'Resolved'], default: 'Active' },
+  description: String,
+  createdAt: { type: Date, default: Date.now },
+  resolvedAt: Date
+})
 
-const Report = mongoose.model('Report', reportSchema);
-
-export default Report;
+export default mongoose.models.Report || mongoose.model('Report', reportSchema)

@@ -1,60 +1,45 @@
-import mongoose from 'mongoose';
+import mongoose from 'mongoose'
 
 const instituteSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
+  name: String,
+  type: String,
+  district: String,
+  isMock: { type: Boolean, default: false },
+  waterQuality: {
+    ph: Number,
+    tds: Number,
+    turbidity: Number,
+    statusDesc: String
   },
-  type: {
-    type: String,
-    enum: ['School', 'Healthcare'],
-    required: true,
-  },
-  district: {
-    type: String,
-    required: true,
-  },
-  isMock: {
-    type: Boolean,
-    default: true,
-  },
-  waterQuality: { 
-    ph: { type: Number, default: 7.0 },
-    tds: { type: Number, default: 200 },
-    turbidity: { type: Number, default: 1.0 },
-    statusDesc: { type: String, default: 'Optimal/Clear' } 
-  },
-  waterLevel: { 
-    level: { type: Number, default: 80 },
-    pumpStatus: { type: String, default: 'Active' },
-    statusDesc: { type: String, default: 'Normal Level' } 
+  waterLevel: {
+    level: Number,
+    pumpStatus: String,
+    statusDesc: String
   },
   solarGrid: {
-    generation: { type: Number, default: 5 }, // kW
-    efficiency: { type: Number, default: 95 }, // %
-    statusDesc: { type: String, default: 'Stable' }
+    generation: Number,
+    efficiency: Number,
+    statusDesc: String
   },
   battery: {
-    level: { type: Number, default: 100 }, // %
-    health: { type: String, default: 'Good' }
+    level: Number,
+    health: String
   },
   electricity: {
-    isAvailable: { type: Boolean, default: true }
+    isAvailable: Boolean
   },
   powerCuts: {
-    history: { type: Array, default: [] },
-    frequency: { type: String, default: 'Rare' }
+    history: [String],
+    frequency: String
   },
   infraClimate: {
-    temp: { type: Number, default: 28 }, // Celsius
-    humidity: { type: Number, default: 55 } // %
+    temp: Number,
+    humidity: Number
   },
   equipmentHealth: {
-    medicineFridgeTemp: { type: Number, default: 4 }, // Celsius, for Healthcare only
-    statusDesc: { type: String, default: 'Optimal' }
-  },
-}, { timestamps: true });
+    medicineFridgeTemp: Number,
+    statusDesc: String
+  }
+})
 
-const Institute = mongoose.model('Institute', instituteSchema);
-
-export default Institute;
+export default mongoose.models.Institute || mongoose.model('Institute', instituteSchema)

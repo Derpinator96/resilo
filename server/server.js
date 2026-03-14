@@ -3,6 +3,7 @@ import cors from 'cors'
 import dotenv from 'dotenv'
 import multer from 'multer'
 import OpenAI from 'openai'
+import Jimp from 'jimp'
 
 dotenv.config()
 
@@ -27,9 +28,17 @@ app.post('/api/sanitation/scan', upload.single('image'), async (req, res) => {
       return res.status(400).json({ error: 'No image file uploaded' })
     }
 
-    // Convert multer buffer to base64 string
-    const base64Image = req.file.buffer.toString('base64')
-    const dataURI = `data:${req.file.mimetype};base64,${base64Image}`
+    // Compress the image with Jimp to radically reduce base64 size (pure JS, safe on all OS)
+    const image = await Jimp.read(req.file.buffer)
+    
+    // Resize down to 800px width (maintain aspect ratio) and set 80% JPEG quality
+    if (image.bitmap.width > 800) {
+      image.resize(800, Jimp.AUTO)
+    }
+    image.quality(80)
+
+    // Jimp automatically appends the data URI prefix (data:image/jpeg;base64,...)
+    const dataURI = await image.getBase64Async(Jimp.MIME_JPEG)
 
     // If using an NVIDIA key, we must use an NVIDIA-hosted vision model instead of gpt-4o
     const targetModel = isNvidiaKey ? "meta/llama-3.2-90b-vision-instruct" : "gpt-4o"
@@ -89,6 +98,15 @@ app.post('/api/sanitation/scan', upload.single('image'), async (req, res) => {
     })
   }
 })
+
+// Global Error Handler for Express to prevent HTML stack traces and silent crashes
+app.use((err, req, res, next) => {
+  console.error("Global Express Error:", err)
+  res.status(500).json({ error: "Server Error", details: err.message })
+})
+
+process.on('uncaughtException', err => console.error('Uncaught Exception:', err))
+process.on('unhandledRejection', err => console.error('Unhandled Rejection:', err))
 
 const PORT = 5000
 app.listen(PORT, () => {

@@ -5,6 +5,7 @@ import Sanitation from './pages/Sanitation'
 import Energy from './pages/Energy'
 import Weather from './pages/Weather'
 import Water from './pages/Water'
+import AIChat from './pages/AIChat'
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
       <Route path="/energy" element={<Energy />} />
       <Route path="/weather" element={<Weather />} />
       <Route path="/water" element={<Water />} />
+      <Route path="/AIChat" element={<AIChat />} />
     </Routes>
   )
 }

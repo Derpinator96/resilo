@@ -7,6 +7,7 @@ import Jimp from 'jimp'
 import mongoose from 'mongoose'
 import { MongoMemoryServer } from 'mongodb-memory-server'
 import Institute from './models/Institute.js'
+import Report from './models/Report.js'
 
 dotenv.config()
 
@@ -21,7 +22,29 @@ async function connectDB() {
   }
 
   mongoose.connect(MONGODB_URI)
-    .then(() => console.log(`Connected to MongoDB at ${MONGODB_URI}`))
+    .then(async () => {
+      console.log(`Connected to MongoDB at ${MONGODB_URI}`)
+      try {
+        const count = await Institute.countDocuments()
+        if (count === 0) {
+          console.log('Database empty, auto-seeding mock data...')
+          const districts = ["Balod", "Baloda Bazar", "Balrampur", "Bastar", "Bemetara", "Bijapur", "Bilaspur", "Dantewada", "Dhamtari", "Durg", "Gariaband", "Gaurela Pendra Marwahi", "Janjgir-Champa", "Jashpur", "Kabirdham", "Kanker", "Kondagaon", "Korba", "Koriya", "Mahasamund", "Manendragarh-Chirmiri-Bharatpur", "Mohla-Manpur-Ambagarh Chowki", "Mungeli", "Narayanpur", "Raigarh", "Raipur", "Rajnandgaon", "Sakti", "Sarangarh-Bilaigarh", "Sukma", "Surajpur", "Surguja", "Khairagarh-Chhuikhadan-Gandai"]
+          const mockInstitutes = []
+          for (const district of districts) {
+            const basePayload = { district, isMock: true };
+            mockInstitutes.push(
+              { ...basePayload, name: `Mock Govt School Alpha - ${district}`, type: 'School', waterQuality: { ph: 6.5, tds: 450, turbidity: 5.5, statusDesc: 'Low/Highly Turbid' }, waterLevel: { level: 25, pumpStatus: 'Active', statusDesc: 'Low/Critical' }, solarGrid: { generation: 2, efficiency: 35, statusDesc: 'Critical: 35% efficiency' }, battery: { level: 40, health: 'Degraded' }, electricity: { isAvailable: true }, powerCuts: { history: [], frequency: 'Frequent' }, infraClimate: { temp: 32, humidity: 65 } },
+              { ...basePayload, name: `Mock Govt School Beta - ${district}`, type: 'School', waterQuality: { ph: 6.9, tds: 300, turbidity: 2.5, statusDesc: 'Moderate/Slightly Turbid' }, waterLevel: { level: 45, pumpStatus: 'Inactive', statusDesc: 'Normal Level' }, solarGrid: { generation: 4, efficiency: 60, statusDesc: 'Warning: 60% efficiency' }, battery: { level: 75, health: 'Good' }, electricity: { isAvailable: true }, powerCuts: { history: [], frequency: 'Rare' }, infraClimate: { temp: 29, humidity: 55 } },
+              { ...basePayload, name: `Mock District Health Centre - ${district}`, type: 'Healthcare', waterQuality: { ph: 6.2, tds: 500, turbidity: 6.0, statusDesc: 'Low/Highly Turbid' }, waterLevel: { level: 15, pumpStatus: 'Active', statusDesc: 'Critical Level' }, solarGrid: { generation: 1, efficiency: 20, statusDesc: 'Critical: 20% efficiency' }, battery: { level: 20, health: 'Replace Soon' }, electricity: { isAvailable: false }, powerCuts: { history: ['Yesterday 2PM'], frequency: 'Frequent' }, infraClimate: { temp: 34, humidity: 70 }, equipmentHealth: { medicineFridgeTemp: 9, statusDesc: 'Critical: Too Warm' } }
+            )
+          }
+          await Institute.insertMany(mockInstitutes)
+          console.log('Seeded', mockInstitutes.length, 'mock institutes')
+        }
+      } catch (err) {
+        console.error('Auto-seed failed:', err)
+      }
+    })
     .catch(err => console.error('MongoDB connection error:', err))
 }
 
@@ -136,33 +159,44 @@ app.get('/api/institutes/seed', async (req, res) => {
 
     for (const district of districts) {
       // Create 2 Schools and 1 Healthcare per district
+      const basePayload = { district, isMock: true };
       mockInstitutes.push(
         {
+          ...basePayload,
           name: `Mock Govt School Alpha - ${district}`,
           type: 'School',
-          district: district,
-          isMock: true,
-          waterQuality: 'Low/Highly Turbid',
-          waterLevel: 25,
-          solarHealth: 'Critical: 35% efficiency'
+          waterQuality: { ph: 6.5, tds: 450, turbidity: 5.5, statusDesc: 'Low/Highly Turbid' },
+          waterLevel: { level: 25, pumpStatus: 'Active', statusDesc: 'Low/Critical' },
+          solarGrid: { generation: 2, efficiency: 35, statusDesc: 'Critical: 35% efficiency' },
+          battery: { level: 40, health: 'Degraded' },
+          electricity: { isAvailable: true },
+          powerCuts: { history: [], frequency: 'Frequent' },
+          infraClimate: { temp: 32, humidity: 65 }
         },
         {
+          ...basePayload,
           name: `Mock Govt School Beta - ${district}`,
           type: 'School',
-          district: district,
-          isMock: true,
-          waterQuality: 'Moderate/Slightly Turbid',
-          waterLevel: 45,
-          solarHealth: 'Warning: 60% efficiency'
+          waterQuality: { ph: 6.9, tds: 300, turbidity: 2.5, statusDesc: 'Moderate/Slightly Turbid' },
+          waterLevel: { level: 45, pumpStatus: 'Inactive', statusDesc: 'Normal Level' },
+          solarGrid: { generation: 4, efficiency: 60, statusDesc: 'Warning: 60% efficiency' },
+          battery: { level: 75, health: 'Good' },
+          electricity: { isAvailable: true },
+          powerCuts: { history: [], frequency: 'Rare' },
+          infraClimate: { temp: 29, humidity: 55 }
         },
         {
+          ...basePayload,
           name: `Mock District Health Centre - ${district}`,
           type: 'Healthcare',
-          district: district,
-          isMock: true,
-          waterQuality: 'Low/Highly Turbid',
-          waterLevel: 15,
-          solarHealth: 'Critical: 20% efficiency'
+          waterQuality: { ph: 6.2, tds: 500, turbidity: 6.0, statusDesc: 'Low/Highly Turbid' },
+          waterLevel: { level: 15, pumpStatus: 'Active', statusDesc: 'Critical Level' },
+          solarGrid: { generation: 1, efficiency: 20, statusDesc: 'Critical: 20% efficiency' },
+          battery: { level: 20, health: 'Replace Soon' },
+          electricity: { isAvailable: false },
+          powerCuts: { history: ['Yesterday 2PM'], frequency: 'Frequent' },
+          infraClimate: { temp: 34, humidity: 70 },
+          equipmentHealth: { medicineFridgeTemp: 9, statusDesc: 'Critical: Too Warm' }
         }
       )
     }
@@ -198,6 +232,105 @@ app.get('/api/institutes', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch institutes' })
   }
 })
+
+app.use(express.json()) // allow JSON parsing
+
+// --- IoT Webhook Ingestion ---
+app.post('/api/iot/update-data', async (req, res) => {
+  try {
+    const { instituteId, ...updateData } = req.body;
+    if (!instituteId) return res.status(400).json({ error: 'Missing instituteId' });
+
+    const institute = await Institute.findByIdAndUpdate(instituteId, updateData, { new: true });
+    
+    // Simplistic 'Auto' report logic for demonstration purposes.
+    // In production, this would be a CRON job checking if a critical status persists > 7 days.
+    const checkCritical = (field, componentName) => {
+      if (field && field.statusDesc && field.statusDesc.toLowerCase().includes('critical')) {
+        Report.findOne({ instituteId, component: componentName, status: 'Active', type: 'Auto' })
+          .then(existing => {
+            if (!existing) {
+              Report.create({
+                instituteId,
+                instituteName: institute.name,
+                component: componentName,
+                type: 'Auto',
+                description: `System auto-escalation: ${field.statusDesc} detected continuously.`,
+              });
+            }
+          }).catch(err => console.error("Auto report error:", err))
+      }
+    };
+    
+    if (institute) {
+      checkCritical(institute.waterLevel, 'Water Level');
+      checkCritical(institute.waterQuality, 'Water Quality');
+      checkCritical(institute.solarGrid, 'Solar Grid');
+      checkCritical(institute.equipmentHealth, 'Medicine Refrigerator');
+    }
+
+    res.json({ success: true, institute });
+  } catch (error) {
+    console.error("IoT Update Error:", error);
+    res.status(500).json({ error: 'Failed to update IoT data' });
+  }
+});
+
+// --- Reports / Alert Ticketing Routes ---
+app.get('/api/reports', async (req, res) => {
+  try {
+    const reports = await Report.find().sort({ createdAt: -1 });
+    res.json(reports);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/reports', async (req, res) => {
+  try {
+    const report = await Report.create(req.body);
+    res.json(report);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/reports/:id/resolve', async (req, res) => {
+  try {
+    const report = await Report.findByIdAndUpdate(
+      req.params.id, 
+      { status: 'Resolved', resolvedAt: new Date() }, 
+      { new: true }
+    );
+    res.json(report);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- AI Action Suggestion Endpoint for Tickets ---
+app.post('/api/reports/:id/suggest', async (req, res) => {
+  try {
+    const report = await Report.findById(req.params.id);
+    if (!report) return res.status(404).json({ error: 'Report not found' });
+    
+    const targetModel = isNvidiaKey ? "meta/llama-3.2-90b-vision-instruct" : "gpt-4o";
+
+    const response = await openai.chat.completions.create({
+      model: targetModel,
+      messages: [
+        { role: "system", content: "You are an expert infrastructure engineer API. Provide a 2-sentence actionable diagnostic and fix for failing rural facility modules." },
+        { role: "user", content: `Facility: ${report.instituteName}. Component: ${report.component}. Error: ${report.description}. What are the immediate actionable steps?` }
+      ],
+      max_tokens: 150
+    });
+    
+    res.json({ suggestion: response.choices[0].message.content });
+  } catch (err) {
+    console.error("AI Suggestion Error:", err);
+    res.status(500).json({ error: 'Failed to generate suggestion' });
+  }
+});
 
 // Global Error Handler for Express to prevent HTML stack traces and silent crashes
 app.use((err, req, res, next) => {

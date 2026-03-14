@@ -115,9 +115,9 @@ export default function Dashboard() {
     <div className="min-h-screen px-4 py-8 bg-gray-50 lg:px-8">
       <div className="max-w-4xl mx-auto">
 
-        <header className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Dashboard</h1>
-          <p className="mt-1 text-gray-500 text-lg">Select your district to begin</p>
+        <header className="mb-8 animate-slide-up">
+          <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">Global <span className="text-gradient">Dashboard</span></h1>
+          <p className="mt-2 text-slate-500 text-lg">Select your district to begin infrastructure surveillance.</p>
         </header>
 
         {/* District Selector */}
@@ -194,7 +194,7 @@ export default function Dashboard() {
               <button
                 key={cat.title}
                 onClick={() => navigate(`/list/${selectedDistrict}/${cat.type}`)}
-                className="group relative flex flex-col justify-between p-8 overflow-hidden text-left bg-white border border-gray-100 rounded-3xl shadow-sm hover:shadow-lg transition-all duration-300 min-h-[190px] active:scale-95"
+                className="group relative flex flex-col justify-between p-8 overflow-hidden text-left bg-white border border-slate-100 rounded-3xl shadow-xl shadow-slate-200/40 hover:shadow-2xl hover:shadow-slate-300/50 transition-all duration-300 min-h-[220px] active:scale-[0.98] animate-slide-up"
               >
                 <div>
                   <div className={`inline-flex items-center justify-center w-14 h-14 mb-4 rounded-2xl ${cat.color}`}>

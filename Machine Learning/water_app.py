@@ -2,11 +2,16 @@ from fastapi import FastAPI
 import pandas as pd
 import numpy as np
 import joblib
+import os
+import subprocess
 
+
+if not os.path.exists("models/water_model.pkl"):
+    subprocess.run(["python", "download_models.py"])
 app = FastAPI()
 
 # Load your trained water model
-model = joblib.load("water_model.pkl")
+model = joblib.load("models/water_model.pkl")
 
 @app.post("/predict-water")
 def predict_water(features: dict):

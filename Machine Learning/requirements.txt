@@ -3,3 +3,7 @@ uvicorn[standard]
 joblib
 pandas
 scikit-learn
+os
+subprocess
+gdown
+numpy

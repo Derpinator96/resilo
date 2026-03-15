@@ -1,9 +1,9 @@
-import { Router } from "express";
-import {  
-} from "../controllers/waterdata.controller.js";
-import { verifyJWT } from "../middlewares/auth.middleware.js";
+import express from "express";
+import { getAllWaterQuality } from "../controllers/waterdata.controller.js";
 
+const router = express.Router();
 
-const router = Router()
+// Only one route: return all records
+router.get("/water/all", getAllWaterQuality);
 
-export default router
+export default router;

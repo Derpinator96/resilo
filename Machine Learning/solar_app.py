@@ -12,11 +12,11 @@ if not os.path.exists("models/solar_model.pkl"):
 app = FastAPI()
 model = joblib.load("models/solar_model.pkl")  # load trained RandomForest model
 
-@app.post("/predict-solar")
+@app.post("/predict")
 def predict(features: dict):
-    # Convert input dict to DataFrame
     df = pd.DataFrame([features])
     prediction = model.predict(df)[0]
-    return {"prediction_MW": float(prediction)}
+    return {"prediction": float(prediction)}
+
 
 print("Model expects:", model.feature_names_in_)

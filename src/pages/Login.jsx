@@ -1,23 +1,23 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/AuthProvider'
 import { ArrowRight, User, ShieldCheck, HardHat, Building, MapPin, Key } from 'lucide-react'
 
 // Hardcoded districts for dropdown
 const districts = [
-  "Balod", "Baloda Bazar", "Balrampur", "Bastar", "Bemetara", "Bijapur", "Bilaspur", 
-  "Dantewada", "Dhamtari", "Durg", "Gariaband", "Gaurela Pendra Marwahi", "Janjgir-Champa", 
-  "Jashpur", "Kabirdham", "Kanker", "Kondagaon", "Korba", "Koriya", "Mahasamund", "Manendragarh-Chirmiri-Bharatpur", 
-  "Mohla-Manpur-Ambagarh Chowki", "Mungeli", "Narayanpur", "Raigarh", "Raipur", "Rajnandgaon", "Sakti", 
+  "Balod", "Baloda Bazar", "Balrampur", "Bastar", "Bemetara", "Bijapur", "Bilaspur",
+  "Dantewada", "Dhamtari", "Durg", "Gariaband", "Gaurela Pendra Marwahi", "Janjgir-Champa",
+  "Jashpur", "Kabirdham", "Kanker", "Kondagaon", "Korba", "Koriya", "Mahasamund", "Manendragarh-Chirmiri-Bharatpur",
+  "Mohla-Manpur-Ambagarh Chowki", "Mungeli", "Narayanpur", "Raigarh", "Raipur", "Rajnandgaon", "Sakti",
   "Sarangarh-Bilaigarh", "Sukma", "Surajpur", "Surguja", "Khairagarh-Chhuikhadan-Gandai"
 ].sort()
 
 export default function Login() {
   const navigate = useNavigate()
   const { login } = useAuth()
-  
+
   const [activeTab, setActiveTab] = useState('citizen')
-  
+
   // Staff Form State
   const [staffDistrict, setStaffDistrict] = useState('')
   const [staffInstituteType, setStaffInstituteType] = useState('School')
@@ -65,13 +65,13 @@ export default function Login() {
 
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen p-6 overflow-hidden bg-slate-50">
-      
+
       {/* Decorative Background Elements */}
       <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-stripe-gradient opacity-20 blur-3xl mix-blend-multiply pointer-events-none animate-fade-in"></div>
       <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full bg-stripe-gradient opacity-10 blur-3xl mix-blend-multiply pointer-events-none animate-fade-in" style={{ animationDelay: '0.2s' }}></div>
 
       <div className="z-10 w-full max-w-4xl">
-        
+
         {/* Header */}
         <div className="mb-12 text-center animate-slide-up">
           <div className="inline-flex items-center justify-center w-20 h-20 mb-6 shadow-xl rounded-3xl bg-stripe-gradient shadow-indigo-500/20">
@@ -87,22 +87,22 @@ export default function Login() {
 
         {/* Unified Auth Box */}
         <div className="p-2 mx-auto shadow-2xl bg-glass rounded-3xl animate-slide-up" style={{ animationDelay: '0.1s' }}>
-          
+
           {/* Tabs */}
           <div className="flex gap-2 p-2 mb-6 bg-white/50 rounded-2xl">
-            <button 
+            <button
               onClick={() => setActiveTab('citizen')}
               className={`flex-1 flex items-center justify-center gap-2 py-4 px-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'citizen' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:bg-white/40'}`}
             >
               <User size={18} /> Citizen Access
             </button>
-            <button 
+            <button
               onClick={() => setActiveTab('staff')}
               className={`flex-1 flex items-center justify-center gap-2 py-4 px-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'staff' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-500 hover:bg-white/40'}`}
             >
               <HardHat size={18} /> Facility Staff
             </button>
-            <button 
+            <button
               onClick={() => setActiveTab('authority')}
               className={`flex-1 flex items-center justify-center gap-2 py-4 px-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'authority' ? 'bg-white text-rose-600 shadow-sm' : 'text-slate-500 hover:bg-white/40'}`}
             >
@@ -112,7 +112,7 @@ export default function Login() {
 
           {/* Render Active Form */}
           <div className="p-6 md:p-8">
-            
+
             {/* CITIZEN */}
             {activeTab === 'citizen' && (
               <div className="text-center animate-fade-in">
@@ -136,13 +136,13 @@ export default function Login() {
             {activeTab === 'staff' && (
               <form onSubmit={handleStaffLogin} className="animate-fade-in text-left">
                 <h2 className="mb-6 text-2xl font-bold text-slate-800">Staff Authorization</h2>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div>
                     <label className="block mb-2 text-sm font-semibold text-slate-600">District Assignment</label>
                     <div className="relative">
                       <MapPin className="absolute z-10 text-slate-400 left-4 top-4" size={20} />
-                      <select 
+                      <select
                         required
                         className="w-full py-4 pl-12 pr-4 text-slate-700 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:outline-none appearance-none font-medium"
                         value={staffDistrict}
@@ -157,7 +157,7 @@ export default function Login() {
                     <label className="block mb-2 text-sm font-semibold text-slate-600">Facility Type</label>
                     <div className="relative">
                       <Building className="absolute z-10 text-slate-400 left-4 top-4" size={20} />
-                      <select 
+                      <select
                         className="w-full py-4 pl-12 pr-4 text-slate-700 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:outline-none appearance-none font-medium"
                         value={staffInstituteType}
                         onChange={e => setStaffInstituteType(e.target.value)}
@@ -171,7 +171,7 @@ export default function Login() {
 
                 <div className="mb-4">
                   <label className="block mb-2 text-sm font-semibold text-slate-600">Assigned Institute</label>
-                  <select 
+                  <select
                     required
                     disabled={!staffDistrict || availableInstitutes.length === 0}
                     className="w-full py-4 px-4 text-slate-700 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:outline-none appearance-none font-medium disabled:opacity-50 disabled:bg-slate-50"
@@ -190,10 +190,10 @@ export default function Login() {
                     <label className="block mb-2 text-sm font-semibold text-slate-600">Staff ID</label>
                     <div className="relative">
                       <User className="absolute z-10 text-slate-400 left-4 top-4" size={20} />
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         required
-                        placeholder="e.g. EMP-1024" 
+                        placeholder="e.g. EMP-1024"
                         className="w-full py-4 pl-12 pr-4 text-slate-700 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:outline-none font-medium"
                         value={staffId}
                         onChange={e => setStaffId(e.target.value)}
@@ -204,10 +204,10 @@ export default function Login() {
                     <label className="block mb-2 text-sm font-semibold text-slate-600">Password</label>
                     <div className="relative">
                       <Key className="absolute z-10 text-slate-400 left-4 top-4" size={20} />
-                      <input 
-                        type="password" 
+                      <input
+                        type="password"
                         required
-                        placeholder="Enter Password" 
+                        placeholder="Enter Password"
                         className="w-full py-4 pl-12 pr-4 text-slate-700 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:outline-none font-medium"
                         value={staffPass}
                         onChange={e => setStaffPass(e.target.value)}
@@ -229,13 +229,13 @@ export default function Login() {
             {activeTab === 'authority' && (
               <form onSubmit={handleAuthorityLogin} className="animate-fade-in text-left">
                 <h2 className="mb-6 text-2xl font-bold text-slate-800">State Authority Portal</h2>
-                
+
                 <div className="mb-4">
                   <label className="block mb-2 text-sm font-semibold text-slate-600">Official Email</label>
-                  <input 
-                    type="email" 
+                  <input
+                    type="email"
                     required
-                    placeholder="name@cg.gov.in" 
+                    placeholder="name@cg.gov.in"
                     className="w-full py-4 px-5 text-slate-700 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-rose-500 focus:outline-none font-medium"
                     value={authEmail}
                     onChange={e => setAuthEmail(e.target.value)}
@@ -244,10 +244,10 @@ export default function Login() {
 
                 <div className="mb-8">
                   <label className="block mb-2 text-sm font-semibold text-slate-600">Password</label>
-                  <input 
-                    type="password" 
+                  <input
+                    type="password"
                     required
-                    placeholder="Enter robust password" 
+                    placeholder="Enter robust password"
                     className="w-full py-4 px-5 text-slate-700 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-rose-500 focus:outline-none font-medium"
                     value={authPass}
                     onChange={e => setAuthPass(e.target.value)}

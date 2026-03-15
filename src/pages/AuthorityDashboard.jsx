@@ -1,16 +1,16 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/AuthProvider'
 import { ShieldAlert, Cpu, Activity, Clock, CheckCircle, ChevronRight, MessageSquare, ArrowRight } from 'lucide-react'
 
 export default function AuthorityDashboard() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
-  
+
   const [reports, setReports] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('Active')
-  
+
   const [suggestions, setSuggestions] = useState({})
   const [generatingFor, setGeneratingFor] = useState(null)
 
@@ -39,7 +39,7 @@ export default function AuthorityDashboard() {
   const handleResolve = async (id) => {
     try {
       await fetch(`http://localhost:5000/api/reports/${id}/resolve`, { method: 'PUT' })
-      fetchReports() 
+      fetchReports()
     } catch (error) {
       console.error(error)
     }
@@ -66,8 +66,8 @@ export default function AuthorityDashboard() {
     const diff = Math.floor((new Date() - new Date(dateStr)) / 60000)
     if (diff < 1) return 'Just now'
     if (diff < 60) return `${diff}m ago`
-    if (diff < 1440) return `${Math.floor(diff/60)}h ago`
-    return `${Math.floor(diff/1440)}d ago`
+    if (diff < 1440) return `${Math.floor(diff / 60)}h ago`
+    return `${Math.floor(diff / 1440)}d ago`
   }
 
   if (loading) {
@@ -90,15 +90,15 @@ export default function AuthorityDashboard() {
             <p className="text-xs font-semibold text-rose-400">STATE AUTHORITY PORTAL</p>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-4">
-          <button 
+          <button
             onClick={() => navigate('/dashboard')}
             className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white transition-colors border border-slate-600 rounded-lg hover:bg-slate-700"
           >
             Global Dashboard <ArrowRight size={16} />
           </button>
-          <button 
+          <button
             onClick={() => { logout(); navigate('/'); }}
             className="text-sm font-bold text-slate-400 hover:text-white"
           >
@@ -109,17 +109,17 @@ export default function AuthorityDashboard() {
 
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="flex gap-4 mb-8">
-          <button 
+          <button
             onClick={() => setActiveTab('Active')}
             className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${activeTab === 'Active' ? 'bg-rose-600 text-white shadow-[0_0_20px_rgba(225,29,72,0.4)]' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}
           >
-            <Activity size={20} /> Active Incidents 
+            <Activity size={20} /> Active Incidents
             <span className={`px-2 py-0.5 ml-2 text-xs rounded-full ${activeTab === 'Active' ? 'bg-white text-rose-600' : 'bg-slate-700 text-slate-300'}`}>
               {activeReports.length}
             </span>
           </button>
-          
-          <button 
+
+          <button
             onClick={() => setActiveTab('History')}
             className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${activeTab === 'History' ? 'bg-emerald-600 text-white shadow-[0_0_20px_rgba(5,150,105,0.4)]' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}
           >
@@ -136,13 +136,13 @@ export default function AuthorityDashboard() {
           ) : (
             (activeTab === 'Active' ? activeReports : historyReports).map(report => (
               <div key={report._id} className={`p-6 bg-slate-800 rounded-2xl border ${report.status === 'Active' ? (report.type === 'Auto' ? 'border-orange-500/50 shadow-lg shadow-orange-500/10' : 'border-rose-500/50 shadow-lg shadow-rose-500/10') : 'border-slate-700 opacity-60'} animate-slide-up`}>
-                
+
                 <div className="flex items-start justify-between">
                   <div className="flex gap-4">
                     <div className={`mt-1 p-3 rounded-xl ${report.type === 'Auto' ? 'bg-orange-500/20 text-orange-400' : 'bg-rose-500/20 text-rose-400'}`}>
                       {report.type === 'Auto' ? <Cpu size={24} /> : <MessageSquare size={24} />}
                     </div>
-                    
+
                     <div>
                       <div className="flex items-center gap-3 mb-2">
                         <span className={`px-2.5 py-1 text-xs font-black uppercase tracking-wider rounded-md ${report.type === 'Auto' ? 'bg-orange-500 text-white' : 'bg-rose-500 text-white'}`}>
@@ -152,12 +152,12 @@ export default function AuthorityDashboard() {
                           <Clock size={14} /> {timeAgo(report.createdAt)}
                         </span>
                       </div>
-                      
+
                       <h2 className="text-2xl font-bold text-white mb-1">
                         [{report.component}] Critical Failure
                       </h2>
                       <p className="text-slate-300 font-medium mb-3">Facility: <span className="text-white">{report.instituteName}</span></p>
-                      
+
                       <div className="p-4 bg-slate-900 rounded-xl mb-4 border border-slate-700">
                         <p className="text-slate-300">"{report.description}"</p>
                       </div>
@@ -172,7 +172,7 @@ export default function AuthorityDashboard() {
                               <p className="text-indigo-100">{suggestions[report._id]}</p>
                             </div>
                           ) : (
-                            <button 
+                            <button
                               onClick={() => handleGenerateAISuggestion(report._id)}
                               disabled={generatingFor === report._id}
                               className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-indigo-400 bg-indigo-500/10 rounded-lg hover:bg-indigo-500/20 transition-colors disabled:opacity-50"
@@ -192,7 +192,7 @@ export default function AuthorityDashboard() {
                   </div>
 
                   {report.status === 'Active' && (
-                    <button 
+                    <button
                       onClick={() => handleResolve(report._id)}
                       className="flex-shrink-0 flex items-center gap-2 px-6 py-3 font-bold text-white bg-slate-700 rounded-xl hover:bg-emerald-600 hover:shadow-[0_0_15px_rgba(5,150,105,0.4)] transition-all"
                     >

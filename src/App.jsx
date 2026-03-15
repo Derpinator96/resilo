@@ -1,6 +1,9 @@
 import { Routes, Route, Link, useLocation } from 'react-router-dom'
 import { Sparkles } from 'lucide-react'
-import { AuthProvider } from './context/AuthContext'
+
+// ✅ Import the Provider from AuthProvider.js (not AuthContext.js)
+import { AuthProvider } from './context/AuthProvider'
+
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Sanitation from './pages/Sanitation'

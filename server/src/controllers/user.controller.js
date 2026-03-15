@@ -82,8 +82,12 @@ const loginUser = asyncHandler(async (req, res) =>{
    const isPasswordValid = await user.isPasswordCorrect(password)
 
    if (!isPasswordValid) {
-    throw new ApiError(401, "Invalid user credentials")
-    }
+  return res.status(401).json({
+    success: false,
+    message: "Invalid user credentials"
+  })
+}
+
 
    const {accessToken, refreshToken} = await generateAccessAndRefereshTokens(user._id)
 
@@ -91,7 +95,7 @@ const loginUser = asyncHandler(async (req, res) =>{
 
     const options = {
         httpOnly: true,
-        secure: true
+        secure: process.env.NODE_ENV === "production"
     }
 
     return res

@@ -1,6 +1,6 @@
 import { Routes, Route, Link, useLocation } from 'react-router-dom'
 import { Sparkles } from 'lucide-react'
-import { AuthProvider } from './context/AuthContext'
+import { AuthProvider } from './context/AuthProvider'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Sanitation from './pages/Sanitation'
@@ -16,10 +16,10 @@ function GlobalLayout({ children }) {
   return (
     <div className="relative min-h-screen bg-gray-50">
       {children}
-      
+
       {/* Global Sanitation Scanner FAB (Hidden on Login & Sanitation itself) */}
       {!isLoginPage && location.pathname !== '/sanitation' && (
-        <Link 
+        <Link
           to="/sanitation"
           className="fixed z-50 flex items-center gap-2 px-5 py-4 font-bold text-white shadow-xl bg-slate-900 rounded-full bottom-6 right-6 hover:bg-slate-800 hover:scale-105 active:scale-95 transition-all duration-300"
         >

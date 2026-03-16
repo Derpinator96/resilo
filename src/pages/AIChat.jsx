@@ -28,7 +28,7 @@ export default function AIChat() {
 
         try {
 
-            const response = await fetch("http://localhost:5000/api/chat", {
+            const response = await fetch("/api/chat", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -107,7 +107,9 @@ export default function AIChat() {
                                             : "bg-gray-100 text-slate-800"
                                         }`}
                                 >
-                                    {msg.content}
+                                    <div className="whitespace-pre-line">
+                                        {msg.content.replace(/\*+/g, '')}
+                                    </div>
                                 </div>
 
                             </div>

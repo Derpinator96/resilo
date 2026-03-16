@@ -9,13 +9,17 @@ import { MongoMemoryServer } from 'mongodb-memory-server'
 import Institute from './models/Institute.js'
 import Report from './models/Report.js'
 
-dotenv.config()
+import { fileURLToPath } from 'url'
+import { dirname, join } from 'path'
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+dotenv.config({ path: join(__dirname, '.env') })
 
 // Connect to MongoDB
 async function connectDB() {
   let MONGODB_URI = process.env.MONGODB_URI
   
-  if (!MONGODB_URI || MONGODB_URI.includes('127.0.0.1')) {
+  if (!MONGODB_URI || MONGODB_URI.includes('127.0.0.1') || MONGODB_URI.includes('localhost')) {
     console.log('Starting ephemeral in-memory MongoDB Server...')
     const mongoServer = await MongoMemoryServer.create()
     MONGODB_URI = mongoServer.getUri()
@@ -233,6 +237,23 @@ app.get('/api/institutes', async (req, res) => {
   }
 })
 
+// Fetch Single Institute by ID
+app.get('/api/institutes/:id', async (req, res) => {
+  try {
+    const institute = await Institute.findById(req.params.id).lean()
+    if (!institute) {
+      return res.status(404).json({ error: 'Institute not found' })
+    }
+    res.json(institute)
+  } catch (error) {
+    console.error("Single Institute Fetch Error:", error)
+    if (error.name === 'CastError') {
+      return res.status(400).json({ error: 'Invalid Institute ID format' })
+    }
+    res.status(500).json({ error: 'Failed to fetch institute details' })
+  }
+})
+
 app.use(express.json()) // allow JSON parsing
 
 // --- IoT Webhook Ingestion ---
@@ -288,6 +309,18 @@ app.get('/api/reports', async (req, res) => {
 
 app.post('/api/reports', async (req, res) => {
   try {
+    if (req.body.type === 'Auto') {
+      // Prevent flood vectors: Check if an Active auto-report for this component already exists
+      const existing = await Report.findOne({
+        instituteId: req.body.instituteId,
+        component: req.body.component,
+        status: 'Active',
+        type: 'Auto'
+      });
+      if (existing) {
+        return res.json({ message: "Active report already exists, skipping." });
+      }
+    }
     const report = await Report.create(req.body);
     res.json(report);
   } catch (err) {
@@ -329,6 +362,38 @@ app.post('/api/reports/:id/suggest', async (req, res) => {
   } catch (err) {
     console.error("AI Suggestion Error:", err);
     res.status(500).json({ error: 'Failed to generate suggestion' });
+  }
+});
+
+// --- Global Chatbot Endpoint ---
+app.post('/api/chat', async (req, res) => {
+  try {
+    const { messages } = req.body;
+    if (!messages || !Array.isArray(messages)) {
+      return res.status(400).json({ error: 'Valid messages array is required' });
+    }
+
+    const systemPrompt = "You are the 'Resilo' Crisis Expert for Chhattisgarh. RESPONSE RULES: 1. LANGUAGE: Respond in the SAME language as the user's question (Hindi/English/Hinglish). 2. STRUCTURE: 🚀 RELIEF: Immediate safety step. ⚠️ DANGER: Health risks (e.g. Cholera, Typhoid). 🛠️ ACTION: Instant fix. 📞 CALL: Use real CG numbers: PHED 1800-233-0008, Health 108, CSEB 1912. 3. STYLE: Use BIG icons. Bold text. NO MARKDOWN symbols like asterisks. Max 60 words.";
+
+    // Prepend the system prompt invisibly to the user messages array
+    const apiMessages = [
+      { role: 'system', content: systemPrompt },
+      ...messages
+    ];
+
+    const targetModel = isNvidiaKey ? "meta/llama-3.2-90b-vision-instruct" : "gpt-4o";
+
+    const response = await openai.chat.completions.create({
+      model: targetModel,
+      messages: apiMessages,
+      max_tokens: 200, // Keep short as requested
+      temperature: 0.3 // Keep factual
+    });
+
+    res.json({ reply: response.choices[0].message.content });
+  } catch (err) {
+    console.error("Chat API Error:", err);
+    res.status(500).json({ error: 'Failed to process chat response' });
   }
 });
 

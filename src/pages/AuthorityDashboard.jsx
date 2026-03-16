@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthProvider'
+import { useAuth } from '../context/AuthContext'
 import { ShieldAlert, Cpu, Activity, Clock, CheckCircle, ChevronRight, MessageSquare, ArrowRight } from 'lucide-react'
 
 export default function AuthorityDashboard() {
@@ -26,7 +26,7 @@ export default function AuthorityDashboard() {
 
   const fetchReports = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/reports')
+      const res = await fetch('/api/reports')
       const data = await res.json()
       setReports(data)
     } catch (error) {
@@ -38,7 +38,7 @@ export default function AuthorityDashboard() {
 
   const handleResolve = async (id) => {
     try {
-      await fetch(`http://localhost:5000/api/reports/${id}/resolve`, { method: 'PUT' })
+      await fetch(`/api/reports/${id}/resolve`, { method: 'PUT' })
       fetchReports()
     } catch (error) {
       console.error(error)
@@ -48,7 +48,7 @@ export default function AuthorityDashboard() {
   const handleGenerateAISuggestion = async (id) => {
     setGeneratingFor(id)
     try {
-      const res = await fetch(`http://localhost:5000/api/reports/${id}/suggest`, { method: 'POST' })
+      const res = await fetch(`/api/reports/${id}/suggest`, { method: 'POST' })
       const data = await res.json()
       setSuggestions(prev => ({ ...prev, [id]: data.suggestion }))
     } catch (error) {

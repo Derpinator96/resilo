@@ -4,12 +4,13 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently \"vite\" \"node server/server.js\"",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@emailjs/browser": "^4.4.1",
     "@vitejs/plugin-react": "^4.2.1",
     "lucide-react": "^0.577.0",
     "react": "^18.2.0",
@@ -21,6 +22,7 @@
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
     "autoprefixer": "^10.4.19",
+    "concurrently": "^9.2.1",
     "eslint": "^8.57.0",
     "eslint-plugin-react": "^7.34.1",
     "eslint-plugin-react-hooks": "^4.6.0",

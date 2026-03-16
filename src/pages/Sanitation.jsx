@@ -33,7 +33,7 @@ export default function Sanitation() {
     formData.append('image', file)
 
     try {
-      const response = await fetch('http://localhost:5000/api/sanitation/scan', {
+      const response = await fetch('/api/sanitation/scan', {
         method: 'POST',
         body: formData,
       })
@@ -92,7 +92,7 @@ export default function Sanitation() {
               <div className="p-4 mb-4 rounded-full bg-sky-100 text-sky-600">
                 <Camera size={32} />
               </div>
-              <h3 className="mb-2 text-xl font-bold text-slate-800">Tap to Scan Washroom</h3>
+              <h3 className="mb-2 text-xl font-bold text-slate-800">Tap to Scan</h3>
               <p className="text-sm text-center text-gray-500">
                 Take a photo or upload from gallery
               </p>
@@ -123,13 +123,13 @@ export default function Sanitation() {
 
           {scanState === 'complete' && aiResult && (
             <div className={`p-8 bg-white border shadow-lg rounded-3xl lg:p-10 border-t-8 ${aiResult.hygieneStatus.toLowerCase().includes('good') || aiResult.hygieneStatus.toLowerCase().includes('clean')
-                ? 'border-t-green-500 border-green-200'
-                : 'border-t-red-600 border-red-200 bg-red-50'
+              ? 'border-t-green-500 border-green-200'
+              : 'border-t-red-600 border-red-200 bg-red-50'
               }`}>
               <div className="flex items-start gap-5">
                 <div className={`p-3 rounded-full shrink-0 ${aiResult.hygieneStatus.toLowerCase().includes('good') || aiResult.hygieneStatus.toLowerCase().includes('clean')
-                    ? 'bg-green-100 text-green-600'
-                    : 'bg-red-100 text-red-600'
+                  ? 'bg-green-100 text-green-600'
+                  : 'bg-red-100 text-red-600'
                   }`}>
                   <AlertTriangle size={32} />
                 </div>

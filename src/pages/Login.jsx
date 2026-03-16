@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthProvider'
+import { useAuth } from '../context/AuthContext'
 import { ArrowRight, User, ShieldCheck, HardHat, Building, MapPin, Key } from 'lucide-react'
 
 // Hardcoded districts for dropdown
@@ -14,7 +14,9 @@ const districts = [
 
 export default function Login() {
   const navigate = useNavigate()
-  const { login } = useAuth()
+  const { loginCitizen, loginStaffOrOfficial } = useAuth()
+  
+  const [errorInfo, setErrorInfo] = useState(null)
 
   const [activeTab, setActiveTab] = useState('citizen')
 
@@ -30,37 +32,56 @@ export default function Login() {
   const [authEmail, setAuthEmail] = useState('')
   const [authPass, setAuthPass] = useState('')
 
-  // Fetch mock institutes when district/type changes for Staff login
+  // Fetch mock institutes when district or type changes for Staff login
   useEffect(() => {
-    if (staffDistrict) {
-      // Trigger a network call, but we can just use the mock endpoint for now
-      fetch(`http://localhost:5000/api/institutes?district=${staffDistrict}&type=${staffInstituteType}`)
+    if (staffDistrict && staffInstituteType) {
+      fetch(`/api/institutes?district=${staffDistrict}&type=${staffInstituteType}`)
         .then(res => res.json())
-        .then(data => setAvailableInstitutes(data))
-        .catch(err => console.error(err))
+        .then(data => {
+            // Check if it's actually an array to avoid breaking the .map() in the UI if the backend returns an error object temporarily
+            if (Array.isArray(data)) {
+                setAvailableInstitutes(data)
+            } else {
+                setAvailableInstitutes([])
+            }
+        })
+        .catch(err => {
+            console.error("Failed to fetch institutes:", err)
+            setAvailableInstitutes([])
+        })
+    } else {
+        setAvailableInstitutes([])
     }
   }, [staffDistrict, staffInstituteType])
 
   const handleCitizenLogin = () => {
-    login('Citizen')
+    setErrorInfo(null)
+    loginCitizen()
     navigate('/dashboard')
   }
 
-  const handleStaffLogin = (e) => {
+  const handleStaffLogin = async (e) => {
     e.preventDefault()
+    setErrorInfo(null)
     if (!staffInstituteId || !staffId || !staffPass) return;
-    // Mock login success
-    login('Staff', { instituteId: staffInstituteId, staffId })
-    // Route to the selected institute
-    navigate(`/institute/${staffInstituteId}`)
+    
+    const success = await loginStaffOrOfficial(staffId, staffPass, "Staff", setErrorInfo, { instituteId: staffInstituteId })
+    if (success) {
+      // Route to the selected institute
+      navigate(`/institute/${staffInstituteId}`)
+    }
   }
 
-  const handleAuthorityLogin = (e) => {
+  const handleAuthorityLogin = async (e) => {
     e.preventDefault()
+    setErrorInfo(null)
     if (!authEmail || !authPass) return;
-    login('Authority')
-    // Route to Alert Center (build later)
-    navigate('/authority')
+    
+    const success = await loginStaffOrOfficial(authEmail, authPass, "Official", setErrorInfo)
+    if (success) {
+      // Route to Alert Center
+      navigate('/authority')
+    }
   }
 
   return (
@@ -112,6 +133,13 @@ export default function Login() {
 
           {/* Render Active Form */}
           <div className="p-6 md:p-8">
+            
+            {errorInfo && (
+              <div className="p-4 mb-6 text-sm font-bold text-rose-600 bg-rose-50 border border-rose-200 rounded-xl animate-fade-in flex items-center gap-3">
+                <ShieldCheck size={20} className="shrink-0" />
+                <span>{errorInfo}</span>
+              </div>
+            )}
 
             {/* CITIZEN */}
             {activeTab === 'citizen' && (

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Building2, School, MapPin } from 'lucide-react'
+import { ArrowLeft, Building2, Sun, MapPin, Loader2 } from 'lucide-react'
 
 export default function InstituteList() {
   const { district, type } = useParams()
@@ -11,45 +11,25 @@ export default function InstituteList() {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    // Hardcoded mock institutes to replace unstable backend fetching
-    const mockData = [
-      {
-        _id: 'mock-1',
-        name: `Mock ${type === 'School' ? 'Govt School Alpha' : 'District Health Centre Alpha'} - ${district}`,
-        type: type,
-        district: district,
-        isMock: true,
-        waterQuality: 'Low/Highly Turbid',
-        waterLevel: 25,
-        solarHealth: 'Critical: 35% efficiency'
-      },
-      {
-        _id: 'mock-2',
-        name: `Mock ${type === 'School' ? 'Govt School Beta' : 'District Health Centre Beta'} - ${district}`,
-        type: type,
-        district: district,
-        isMock: true,
-        waterQuality: 'Moderate/Slightly Turbid',
-        waterLevel: 45,
-        solarHealth: 'Warning: 60% efficiency'
-      },
-      {
-        _id: 'mock-3',
-        name: `Mock ${type === 'School' ? 'Govt School Gamma' : 'District Health Centre Gamma'} - ${district}`,
-        type: type,
-        district: district,
-        isMock: true,
-        waterQuality: 'Optimal/Clear',
-        waterLevel: 85,
-        solarHealth: 'Stable: 95% efficiency'
-      }
-    ]
-
-    // Simulate network delay for UX
-    setTimeout(() => {
-      setData(mockData)
-      setLoading(false)
-    }, 400)
+    setLoading(true)
+    fetch(`/api/institutes?district=${encodeURIComponent(district)}`)
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to fetch facilities')
+        return res.json()
+      })
+      .then(fetchedData => {
+        if (Array.isArray(fetchedData)) {
+          setData(fetchedData)
+        } else {
+          setData([])
+        }
+        setLoading(false)
+      })
+      .catch(err => {
+        console.error(err)
+        setError('Failed to connect to the database.')
+        setLoading(false)
+      })
   }, [district, type])
 
   return (
@@ -92,22 +72,12 @@ export default function InstituteList() {
                 className="flex items-center justify-between p-6 text-left transition-all duration-300 bg-white border border-slate-100 shadow-lg shadow-slate-200/50 rounded-3xl hover:shadow-xl hover:-translate-y-1 active:scale-[0.98] animate-fade-in"
               >
                 <div className="flex items-center gap-5">
-                  <div className={`p-4 rounded-xl shrink-0 ${type === 'School' ? 'bg-teal-50 text-teal-600' : 'bg-blue-50 text-blue-600'}`}>
-                    {type === 'School' ? <School size={28} /> : <Building2 size={28} />}
+                  <div className={`p-4 rounded-xl shrink-0 ${type === 'Solar Centre' ? 'bg-orange-50 text-orange-600' : 'bg-blue-50 text-blue-600'}`}>
+                    {type === 'Solar Centre' ? <Sun size={28} /> : <Building2 size={28} />}
                   </div>
                   <div>
                     <h3 className="text-xl font-bold text-slate-800">{inst.name}</h3>
                     <div className="flex gap-2 mt-1">
-                      {inst.isMock && (
-                        <span className="px-2 py-0.5 text-xs font-bold text-purple-700 uppercase bg-purple-100 rounded-md">
-                          Database Seed
-                        </span>
-                      )}
-                      {!inst.isMock && (
-                        <span className="px-2 py-0.5 text-xs font-bold text-green-700 uppercase bg-green-100 rounded-md">
-                          Live Sensor Data
-                        </span>
-                      )}
                     </div>
                   </div>
                 </div>

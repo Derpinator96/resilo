@@ -1,19 +1,20 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import { useUser } from '@clerk/clerk-react'
 import {
   ArrowLeft, Droplet, BatteryCharging, Power, ThermometerSun,
   AlertTriangle, CheckCircle2, ShieldAlert, X, Activity,
   Sun, Moon, Wifi, TrendingUp, TrendingDown, MoreHorizontal
 } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import IoTMonitor from '../components/IoTMonitor'
 
 export default function InstituteDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const { user } = useUser()
 
-  const [inst, setInst] = useState(null)
+  let [inst, setInst] = useState(null)
   const [loading, setLoading] = useState(true)
   const [isDark, setIsDark] = useState(false)
 
@@ -23,140 +24,8 @@ export default function InstituteDetail() {
   const [reportDescription, setReportDescription] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Interactive Water Tank State
-  const [isWaterExpanded, setIsWaterExpanded] = useState(false)
-  const [waterLevelData, setWaterLevelData] = useState([])
-  const [currentWaterLevel, setCurrentWaterLevel] = useState(0)
-
-  // Interactive Water Quality State
-  const [isQualityExpanded, setIsQualityExpanded] = useState(false)
-  const [qualityDataHistory, setQualityDataHistory] = useState([])
-  const [currentQuality, setCurrentQuality] = useState({
-    ph: 7.0, hardness: 0, solids: 0, chloramine: 0, sulfate: 0,
-    conductivity: 0, organicCarbon: 0, thm: 0, turbidity: 0
-  })
-
   // Interactive Solar Grid State
   const [isSolarExpanded, setIsSolarExpanded] = useState(false)
-  const [solarDataHistory, setSolarDataHistory] = useState([])
-  const [currentSolar, setCurrentSolar] = useState({
-    battery: 0, grid: 0, voltage: 0, current: 0, power: 0
-  })
-
-
-  useEffect(() => {
-    if (inst) setCurrentWaterLevel(inst.waterLevel.level)
-  }, [inst])
-
-  useEffect(() => {
-    if (!isWaterExpanded) return
-    const fetchBlynk = async () => {
-      try {
-        const res = await fetch('https://blynk.cloud/external/api/get?token=-TTjeR-083F2bZTcW8FO8soQ6PJEw8xi&V0')
-        const data = await res.text()
-        const levelData = parseFloat(data)
-        if (!isNaN(levelData)) {
-          const now = new Date()
-          const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-          setCurrentWaterLevel(levelData)
-          setWaterLevelData(prev => {
-            const newArray = [...prev, { time: timeStr, level: levelData }]
-            if (newArray.length > 20) return newArray.slice(newArray.length - 20)
-            return newArray
-          })
-
-          // Auto-Escalate if critical
-          if (levelData < 10) {
-            triggerAutoEscalation('Water Tank', `CRITICAL LOW: Water level plummeted to ${levelData}%`)
-          }
-        }
-      } catch (err) { console.error("Blynk fetch error:", err) }
-    }
-    fetchBlynk()
-    const interval = setInterval(fetchBlynk, 3000)
-    return () => clearInterval(interval)
-  }, [isWaterExpanded])
-
-  useEffect(() => {
-    if (!isQualityExpanded) return
-    const fetchQualityBlynk = async () => {
-      try {
-        const token = 'eTtvQMN4cS_BUF49XpDUI_pdWtVXlNnz'
-        const baseUrl = `https://blynk.cloud/external/api/get?token=${token}`
-        const pins = ['v0', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7', 'v8']
-
-        const responses = await Promise.all(pins.map(pin => fetch(`${baseUrl}&${pin}`)))
-        const values = await Promise.all(responses.map(res => res.text()))
-
-        // Strip out any brackets/quotes just in case Blynk returns an array string like '["7.2"]' instead of '7.2'
-        const parsedValues = values.map(val => parseFloat(val.replace(/[\[\]"]/g, '')) || 0)
-
-        const [v0, v1, v2, v3, v4, v5, v6, v7, v8] = parsedValues
-
-        const newQuality = {
-          ph: v0, hardness: v1, solids: v2, chloramine: v3, sulfate: v4,
-          conductivity: v5, organicCarbon: v6, thm: v7, turbidity: v8
-        }
-        setCurrentQuality(newQuality)
-
-        const now = new Date()
-        const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-
-        setQualityDataHistory(prev => {
-          const newArray = [...prev, { time: timeStr, ph: v0, turbidity: v8, solids: v2 }]
-          if (newArray.length > 20) return newArray.slice(newArray.length - 20)
-          return newArray
-        })
-
-        // Auto-Escalate if critical
-        if (v0 < 5.0 || v0 > 9.0) {
-          triggerAutoEscalation('Water Quality', `CRITICAL pH: Detected severe pH imbalance at ${v0}`)
-        }
-      } catch (err) { console.error("Blynk quality fetch error:", err) }
-    }
-    fetchQualityBlynk()
-    const interval = setInterval(fetchQualityBlynk, 5000)
-    return () => clearInterval(interval)
-  }, [isQualityExpanded])
-
-  useEffect(() => {
-    if (!isSolarExpanded) return
-    const fetchSolarBlynk = async () => {
-      try {
-        const token = 'K8hLtUhm9nczMDy0Wa9NsAceBdhB-FhQ'
-        const baseUrl = `https://blynk.cloud/external/api/get?token=${token}`
-        const pins = ['v0', 'v1', 'v2', 'v3', 'v4']
-
-        const responses = await Promise.all(pins.map(pin => fetch(`${baseUrl}&${pin}`)))
-        const values = await Promise.all(responses.map(res => res.text()))
-
-        const parsedValues = values.map(val => parseFloat(val.replace(/[\[\]"]/g, '')) || 0)
-
-        const [v0, v1, v2, v3, v4] = parsedValues
-
-        setCurrentSolar({
-          battery: v0, grid: v1, voltage: v2, current: v3, power: v4
-        })
-
-        const now = new Date()
-        const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-
-        setSolarDataHistory(prev => {
-          const newArray = [...prev, { time: timeStr, power: v4, voltage: v2 }]
-          if (newArray.length > 20) return newArray.slice(newArray.length - 20)
-          return newArray
-        })
-
-        // Auto-Escalate if critical (e.g. battery dies or voltage drops aggressively)
-        if (v0 < 15 && v1 === 0) {
-          triggerAutoEscalation('Solar Grid', `CRITICAL POWER: Battery level critical (${v0}%) without grid supply!`)
-        }
-      } catch (err) { console.error("Blynk solar fetch error:", err) }
-    }
-    fetchSolarBlynk()
-    const interval = setInterval(fetchSolarBlynk, 3500)
-    return () => clearInterval(interval)
-  }, [isSolarExpanded])
 
   const triggerAutoEscalation = async (componentName, desc) => {
     if (!inst) return;
@@ -187,8 +56,7 @@ export default function InstituteDetail() {
             name: id.includes('Alpha') ? 'Mock Govt School Alpha' : 'Mock District Health Centre',
             type: id.includes('Alpha') ? 'School' : 'Healthcare',
 
-            waterQuality: { ph: 6.2, tds: 500, turbidity: 6.0, statusDesc: 'Low/Highly Turbid' },
-            waterLevel: { level: 15, pumpStatus: 'Active', statusDesc: 'Critical Level' },
+            
             solarGrid: { generation: 1, efficiency: 20, statusDesc: 'Critical: 20% efficiency' },
             battery: { level: 20, health: 'Replace Soon' },
             electricity: { isAvailable: false },
@@ -287,7 +155,15 @@ export default function InstituteDetail() {
     </div>
   )
 
-  const isStaff = user?.role === 'Staff'
+  inst = {
+    ...inst,
+    solarGrid: inst.solarGrid || { generation: inst.pvRating || 10, efficiency: 85, statusDesc: 'Stable' },
+    battery: { ...inst.battery, level: 95, health: 'Optimal' },
+    infraClimate: inst.infraClimate || { temp: 28, humidity: 45 },
+    equipmentHealth: inst.equipmentHealth || { statusDesc: 'Stable', medicineFridgeTemp: 4 }
+  }
+
+  const isStaff = !!user
 
   // ── SUB-COMPONENTS ────────────────────────────────────────────────────────
   const StatusPill = ({ isCritical, text }) => (
@@ -356,11 +232,6 @@ export default function InstituteDetail() {
       <div>{children}</div>
     </div>
   )
-
-  const miniSparkData = [
-    { v: 30 }, { v: 45 }, { v: 38 }, { v: 55 }, { v: 42 },
-    { v: inst.solarGrid.efficiency }, { v: inst.solarGrid.efficiency }
-  ]
 
   return (
     <div style={{ minHeight: '100vh', background: t.bg, fontFamily: "'DM Sans','Segoe UI',sans-serif", color: t.text }}>
@@ -459,7 +330,7 @@ export default function InstituteDetail() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14, marginBottom: 24 }}>
           {[
             { label: 'Solar Efficiency', value: `${inst.solarGrid.efficiency}%`, sub: `${inst.solarGrid.generation} kW generation`, icon: BatteryCharging, color: '#f59e0b', bg: isDark ? 'rgba(245,158,11,0.15)' : 'rgba(245,158,11,0.1)', trend: inst.solarGrid.efficiency < 50 ? 'down' : 'up' },
-            { label: 'Water Level', value: `${currentWaterLevel}%`, sub: inst.waterLevel.pumpStatus + ' pump', icon: Droplet, color: '#3b82f6', bg: isDark ? 'rgba(59,130,246,0.15)' : 'rgba(59,130,246,0.1)', trend: currentWaterLevel < 30 ? 'down' : 'up' },
+            
             { label: 'Battery Backup', value: `${inst.battery.level}%`, sub: inst.battery.health, icon: Power, color: '#8b5cf6', bg: isDark ? 'rgba(139,92,246,0.15)' : 'rgba(139,92,246,0.1)', trend: inst.battery.level < 30 ? 'down' : 'up' },
             { label: 'Infra Temp', value: `${inst.infraClimate.temp}°C`, sub: `Humidity ${inst.infraClimate.humidity}%`, icon: ThermometerSun, color: '#ef4444', bg: isDark ? 'rgba(239,68,68,0.15)' : 'rgba(239,68,68,0.1)', trend: inst.infraClimate.temp > 35 ? 'down' : 'up' },
           ].map((m, i) => (
@@ -487,8 +358,7 @@ export default function InstituteDetail() {
         {/* ── MAIN CARD GRID ── */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 14 }}>
 
-          {/* SOLAR GRID */}
-          {/* ── SOLAR GRID & BATTERY (expandable) ── */}
+          {/* SOLAR GRID & BATTERY (expandable) ── */}
           <div
             className="card-anim"
             style={{
@@ -554,335 +424,8 @@ export default function InstituteDetail() {
                 )}
               </div>
             ) : (
-              <div style={{ borderTop: `1px solid ${t.border}`, paddingTop: 22, marginTop: 6 }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-
-                  {/* Wokwi iframe block */}
-                  <div style={{ background: t.surface2, borderRadius: 14, padding: 18, border: `1px solid ${t.border}` }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 14 }}>
-                      <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: t.textMuted, marginBottom: 14, display: 'block' }}>Solar Array Sensors (ESP32)</span>
-                      <span style={{ position: 'relative', top: -7, display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 700, color: t.success }}>
-                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: t.success, animation: 'ping 1.5s infinite' }} /> Online
-                      </span>
-                    </div>
-                    <div style={{ borderRadius: 12, overflow: 'hidden', border: `1px solid ${t.border}` }}>
-                      <iframe src="https://wokwi.com/projects/458496084647692289?view=diagram" width="100%" height="380px" style={{ border: 'none', display: 'block' }} title="Wokwi ESP32 Solar Grid" />
-                    </div>
-                  </div>
-
-                  {/* Multi-line Recharts block */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
-                      <div style={{ background: t.surface2, padding: 12, borderRadius: 12, border: `1px solid ${t.border}` }}>
-                        <div style={{ fontSize: 10, color: t.textMuted, fontWeight: 700, textTransform: 'uppercase' }}>Battery Level</div>
-                        <div style={{ fontSize: 24, fontWeight: 900, color: currentSolar.battery < 20 ? t.danger : '#10b981' }}>{currentSolar.battery}%</div>
-                      </div>
-                      <div style={{ background: t.surface2, padding: 12, borderRadius: 12, border: `1px solid ${t.border}` }}>
-                        <div style={{ fontSize: 10, color: t.textMuted, fontWeight: 700, textTransform: 'uppercase' }}>Grid Supply</div>
-                        <div style={{ fontSize: 24, fontWeight: 900, color: currentSolar.grid > 0 ? '#3b82f6' : t.danger }}>{currentSolar.grid > 0 ? "Active" : "Down"}</div>
-                      </div>
-                      <div style={{ background: t.surface2, padding: 12, borderRadius: 12, border: `1px solid ${t.border}` }}>
-                        <div style={{ fontSize: 10, color: t.textMuted, fontWeight: 700, textTransform: 'uppercase' }}>Solar Voltage</div>
-                        <div style={{ fontSize: 24, fontWeight: 900, color: '#f59e0b' }}>{currentSolar.voltage} V</div>
-                      </div>
-                      <div style={{ background: t.surface2, padding: 12, borderRadius: 12, border: `1px solid ${t.border}` }}>
-                        <div style={{ fontSize: 10, color: t.textMuted, fontWeight: 700, textTransform: 'uppercase' }}>Solar Current</div>
-                        <div style={{ fontSize: 24, fontWeight: 900, color: '#06b6d4' }}>{currentSolar.current} A</div>
-                      </div>
-                      <div style={{ background: t.surface2, padding: 12, borderRadius: 12, border: `1px solid ${t.border}` }}>
-                        <div style={{ fontSize: 10, color: t.textMuted, fontWeight: 700, textTransform: 'uppercase' }}>Solar Power</div>
-                        <div style={{ fontSize: 24, fontWeight: 900, color: '#8b5cf6' }}>{currentSolar.power} W</div>
-                      </div>
-                    </div>
-
-                    {/* Interactive Graph */}
-                    <div style={{ flex: 1, background: t.surface, borderRadius: 12, padding: '14px 10px 10px', border: `1px solid ${t.border}`, minHeight: 220 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 10px 10px' }}>
-                        <span style={{ fontSize: 11, fontWeight: 700, color: t.textMuted, textTransform: 'uppercase' }}>Live Array Plot</span>
-                        <span style={{ fontSize: 10, fontWeight: 700, color: '#f59e0b', animation: 'ping 1s infinite' }}>POLLING PINS</span>
-                      </div>
-                      <ResponsiveContainer width="100%" height="85%">
-                        <LineChart data={solarDataHistory}>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'} />
-                          <XAxis dataKey="time" tick={{ fontSize: 9, fill: t.textMuted }} tickLine={false} axisLine={false} minTickGap={20} />
-                          <YAxis tick={{ fontSize: 9, fill: t.textMuted }} tickLine={false} axisLine={false} />
-                          <Tooltip contentStyle={{ background: t.surface, border: `1px solid ${t.border}`, borderRadius: 10, boxShadow: t.shadow, fontSize: 12 }} />
-
-                          <Line type="monotone" name="Power (W)" dataKey="power" stroke="#8b5cf6" strokeWidth={3} dot={{ r: 2 }} activeDot={{ r: 4 }} />
-                          <Line type="monotone" name="Voltage (V)" dataKey="voltage" stroke="#f59e0b" strokeWidth={3} dot={{ r: 2 }} activeDot={{ r: 4 }} />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* ── WATER QUALITY (expandable) ── */}
-          <div
-            className="card-anim"
-            style={{
-              background: t.surface, borderRadius: 16,
-              border: isQualityExpanded ? `2px solid ${t.accent}` : `1px solid ${t.border}`,
-              boxShadow: isQualityExpanded ? t.shadowLg : t.shadow,
-              gridColumn: isQualityExpanded ? 'span 3' : undefined,
-              transition: 'all 0.4s cubic-bezier(.4,0,.2,1)',
-              cursor: (!isQualityExpanded && isStaff) ? 'pointer' : 'default',
-              padding: 22
-            }}
-            onClick={() => { if (!isQualityExpanded && isStaff) setIsQualityExpanded(true) }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: isDark ? 'rgba(6,182,212,0.15)' : 'rgba(6,182,212,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Droplet size={18} style={{ color: '#06b6d4' }} />
-                </div>
-                <span style={{ fontSize: 13, fontWeight: 700, color: t.text }}>Water Quality</span>
-
-                {isQualityExpanded && isStaff && (
-                  <span style={{ fontSize: 11, fontWeight: 700, color: t.accent, background: t.accentBg, padding: '2px 8px', borderRadius: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <Wifi size={11} /> Live Telemetry
-                  </span>
-                )}
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                {isQualityExpanded ? (
-                  <button
-                    onClick={e => { e.stopPropagation(); setIsQualityExpanded(false) }}
-                    style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 8, border: `1px solid ${t.border}`, background: 'none', color: t.textSec, cursor: 'pointer', fontSize: 12, fontWeight: 600 }}
-                  >
-                    <X size={14} /> Close
-                  </button>
-                ) : (
-                  <ReportBtn name="Water Quality" stopProp />
-                )}
-                <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.textMuted, padding: 4 }}>
-                  <MoreHorizontal size={16} />
-                </button>
-              </div>
-            </div>
-
-            <StatusPill
-              isCritical={currentQuality.ph < 5.0 || currentQuality.ph > 9.0}
-              text={(currentQuality.ph < 5.0 || currentQuality.ph > 9.0) ? 'Critical: Severe Contamination Detected' : 'All 9 metrics registering optimal'}
-            />
-
-            {!isQualityExpanded ? (
-              <div>
-                <MetricRow label="pH Level" value={currentQuality.ph} accent={currentQuality.ph < 6.5 ? t.danger : t.success} />
-                <MetricRow label="TDS / Solids" value={`${currentQuality.solids} ppm`} accent={currentQuality.solids > 300 ? t.warn : t.success} />
-                <MetricRow label="Turbidity" value={`${currentQuality.turbidity} NTU`} accent={currentQuality.turbidity > 4 ? t.danger : t.success} />
-
-                {isStaff && (
-                  <div style={{
-                    marginTop: 14, padding: '10px 14px', borderRadius: 10,
-                    background: t.accentBg, border: `1px solid rgba(79,110,247,0.2)`,
-                    display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center'
-                  }}>
-                    <Activity size={14} style={{ color: t.accent, animation: 'ping 1.5s infinite' }} />
-                    <span style={{ fontSize: 12, fontWeight: 700, color: t.accent }}>Click to view Live IoT Telemetry</span>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div style={{ borderTop: `1px solid ${t.border}`, paddingTop: 22, marginTop: 6 }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-
-                  {/* Wokwi iframe block */}
-                  <div style={{ background: t.surface2, borderRadius: 14, padding: 18, border: `1px solid ${t.border}` }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 14 }}>
-                      <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: t.textMuted, marginBottom: 14, display: 'block' }}>Quality Sensors (ESP32)</span>
-                      <span style={{ position: 'relative', top: -7, display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 700, color: t.success }}>
-                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: t.success, animation: 'ping 1.5s infinite' }} /> Online
-                      </span>
-                    </div>
-                    <div style={{ borderRadius: 12, overflow: 'hidden', border: `1px solid ${t.border}` }}>
-                      <iframe src="https://wokwi.com/projects/458500393804670977?view=diagram" width="100%" height="380px" style={{ border: 'none', display: 'block' }} title="Wokwi ESP32" />
-                    </div>
-                  </div>
-
-                  {/* 9-Parameter Grid block */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 4px' }}>
-                      <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: t.textMuted }}>Live Telemetry Parameters</span>
-                      <span style={{ fontSize: 10, fontWeight: 700, color: t.accent, animation: 'ping 1s infinite' }}>POLLING 9 PINS</span>
-                    </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
-                      <div style={{ background: t.surface2, padding: 12, borderRadius: 12, border: `1px solid ${t.border}` }}>
-                        <div style={{ fontSize: 10, color: t.textMuted, fontWeight: 700, textTransform: 'uppercase' }}>pH Balance</div>
-                        <div style={{ fontSize: 24, fontWeight: 900, color: '#06b6d4' }}>{currentQuality.ph}</div>
-                      </div>
-                      <div style={{ background: t.surface2, padding: 12, borderRadius: 12, border: `1px solid ${t.border}` }}>
-                        <div style={{ fontSize: 10, color: t.textMuted, fontWeight: 700, textTransform: 'uppercase' }}>Turbidity</div>
-                        <div style={{ fontSize: 24, fontWeight: 900, color: '#f59e0b' }}>{currentQuality.turbidity}</div>
-                      </div>
-                      <div style={{ background: t.surface2, padding: 12, borderRadius: 12, border: `1px solid ${t.border}` }}>
-                        <div style={{ fontSize: 10, color: t.textMuted, fontWeight: 700, textTransform: 'uppercase' }}>Solids (TDS)</div>
-                        <div style={{ fontSize: 24, fontWeight: 900, color: '#8b5cf6' }}>{currentQuality.solids}</div>
-                      </div>
-                      <div style={{ background: t.surface2, padding: 12, borderRadius: 12, border: `1px solid ${t.border}` }}>
-                        <div style={{ fontSize: 10, color: t.textMuted, fontWeight: 700, textTransform: 'uppercase' }}>Hardness</div>
-                        <div style={{ fontSize: 24, fontWeight: 900, color: '#10b981' }}>{currentQuality.hardness}</div>
-                      </div>
-                      <div style={{ background: t.surface2, padding: 12, borderRadius: 12, border: `1px solid ${t.border}` }}>
-                        <div style={{ fontSize: 10, color: t.textMuted, fontWeight: 700, textTransform: 'uppercase' }}>Chloramine</div>
-                        <div style={{ fontSize: 24, fontWeight: 900, color: '#ec4899' }}>{currentQuality.chloramine}</div>
-                      </div>
-                      <div style={{ background: t.surface2, padding: 12, borderRadius: 12, border: `1px solid ${t.border}` }}>
-                        <div style={{ fontSize: 10, color: t.textMuted, fontWeight: 700, textTransform: 'uppercase' }}>Sulfate</div>
-                        <div style={{ fontSize: 24, fontWeight: 900, color: '#3b82f6' }}>{currentQuality.sulfate}</div>
-                      </div>
-                      <div style={{ background: t.surface2, padding: 12, borderRadius: 12, border: `1px solid ${t.border}` }}>
-                        <div style={{ fontSize: 10, color: t.textMuted, fontWeight: 700, textTransform: 'uppercase' }}>Conductivity</div>
-                        <div style={{ fontSize: 24, fontWeight: 900, color: '#f97316' }}>{currentQuality.conductivity}</div>
-                      </div>
-                      <div style={{ background: t.surface2, padding: 12, borderRadius: 12, border: `1px solid ${t.border}` }}>
-                        <div style={{ fontSize: 10, color: t.textMuted, fontWeight: 700, textTransform: 'uppercase' }}>Org. Carbon</div>
-                        <div style={{ fontSize: 24, fontWeight: 900, color: '#14b8a6' }}>{currentQuality.organicCarbon}</div>
-                      </div>
-                      <div style={{ background: t.surface2, padding: 12, borderRadius: 12, border: `1px solid ${t.border}` }}>
-                        <div style={{ fontSize: 10, color: t.textMuted, fontWeight: 700, textTransform: 'uppercase' }}>THM</div>
-                        <div style={{ fontSize: 24, fontWeight: 900, color: '#ef4444' }}>{currentQuality.thm}</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-          <div
-            className="card-anim"
-            style={{
-              background: t.surface, borderRadius: 16,
-              border: isWaterExpanded ? `2px solid ${t.accent}` : `1px solid ${t.border}`,
-              boxShadow: isWaterExpanded ? t.shadowLg : t.shadow,
-              gridColumn: isWaterExpanded ? 'span 3' : undefined,
-              transition: 'all 0.4s cubic-bezier(.4,0,.2,1)',
-              cursor: (!isWaterExpanded && isStaff) ? 'pointer' : 'default',
-              padding: 22
-            }}
-            onClick={() => { if (!isWaterExpanded && isStaff) setIsWaterExpanded(true) }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: isDark ? 'rgba(59,130,246,0.15)' : 'rgba(59,130,246,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Droplet size={18} style={{ color: '#3b82f6' }} />
-                </div>
-                <span style={{ fontSize: 13, fontWeight: 700, color: t.text }}>Water Tank</span>
-
-                {isWaterExpanded && isStaff && (
-                  <span style={{ fontSize: 11, fontWeight: 700, color: t.accent, background: t.accentBg, padding: '2px 8px', borderRadius: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <Wifi size={11} /> Live Telemetry
-                  </span>
-                )}
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                {isWaterExpanded ? (
-                  <button
-                    onClick={e => { e.stopPropagation(); setIsWaterExpanded(false) }}
-                    style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 8, border: `1px solid ${t.border}`, background: 'none', color: t.textSec, cursor: 'pointer', fontSize: 12, fontWeight: 600 }}
-                  >
-                    <X size={14} /> Close
-                  </button>
-                ) : (
-                  <ReportBtn name="Water Tank" stopProp />
-                )}
-                <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.textMuted, padding: 4 }}>
-                  <MoreHorizontal size={16} />
-                </button>
-              </div>
-            </div>
-
-            <StatusPill
-              isCritical={currentWaterLevel < 30}
-              text={currentWaterLevel < 30 ? 'Tank nearly empty. Immediate attention required.' : 'Operating at optimal capacity.'}
-            />
-
-            {!isWaterExpanded ? (
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                  <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: t.textMuted }}>Current Level</span>
-                  <span style={{ fontSize: 22, fontWeight: 800, color: t.text }}>{currentWaterLevel}%</span>
-                </div>
-                <div style={{ width: '100%', height: 8, background: t.surface2, borderRadius: 99, overflow: 'hidden', marginBottom: 14 }}>
-                  <div style={{
-                    height: '100%', borderRadius: 99,
-                    width: `${currentWaterLevel}%`,
-                    background: currentWaterLevel < 30 ? t.danger : t.accent,
-                    transition: 'width 1s ease'
-                  }} />
-                </div>
-                {isStaff && (
-                  <div style={{
-                    marginTop: 14, padding: '10px 14px', borderRadius: 10,
-                    background: t.accentBg, border: `1px solid rgba(79,110,247,0.2)`,
-                    display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center'
-                  }}>
-                    <Activity size={14} style={{ color: t.accent, animation: 'ping 1.5s infinite' }} />
-                    <span style={{ fontSize: 12, fontWeight: 700, color: t.accent }}>Click to view Live IoT Telemetry</span>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div style={{ borderTop: `1px solid ${t.border}`, paddingTop: 22, marginTop: 6 }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-                  {/* Wokwi simulation */}
-                  <div style={{ background: t.surface2, borderRadius: 14, padding: 18, border: `1px solid ${t.border}` }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-                      <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: t.textMuted }}>Live Hardware Simulation (ESP32)</span>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 700, color: t.success }}>
-                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: t.success, animation: 'ping 1.5s infinite' }} />
-                        Online
-                      </span>
-                    </div>
-                    <div style={{ borderRadius: 12, overflow: 'hidden', border: `1px solid ${t.border}` }}>
-                      <iframe src="https://wokwi.com/projects/458494706884760577?view=diagram" width="100%" height="380px" style={{ border: 'none', display: 'block' }} title="Wokwi ESP32" />
-                    </div>
-                  </div>
-
-                  {/* Live analytics */}
-                  <div style={{ background: t.surface2, borderRadius: 14, padding: 18, border: `1px solid ${t.border}`, display: 'flex', flexDirection: 'column' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-                      <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: t.textMuted }}>Real-time Level Analytics</span>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                        <span style={{ position: 'relative', display: 'inline-flex' }}>
-                          <span style={{ width: 8, height: 8, borderRadius: '50%', background: t.accent, opacity: 0.6, animation: 'ping 1s infinite', position: 'absolute' }} />
-                          <span style={{ width: 8, height: 8, borderRadius: '50%', background: t.accent, display: 'block' }} />
-                        </span>
-                        <span style={{ fontSize: 10, fontWeight: 700, color: t.accent, letterSpacing: '0.05em' }}>POLLING</span>
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 20 }}>
-                      <span style={{ fontSize: 52, fontWeight: 900, color: t.accent, lineHeight: 1, letterSpacing: '-0.03em' }}>{currentWaterLevel}</span>
-                      <span style={{ fontSize: 20, fontWeight: 600, color: t.textMuted }}>%</span>
-                    </div>
-
-                    <div style={{ flex: 1, background: t.surface, borderRadius: 12, padding: '14px 10px 10px', border: `1px solid ${t.border}`, minHeight: 240 }}>
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={waterLevelData}>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'} />
-                          <XAxis dataKey="time" tick={{ fontSize: 9, fill: t.textMuted }} tickLine={false} axisLine={false} minTickGap={20} />
-                          <YAxis domain={[0, 100]} tick={{ fontSize: 9, fill: t.textMuted }} tickLine={false} axisLine={false} />
-                          <Tooltip
-                            contentStyle={{ background: t.surface, border: `1px solid ${t.border}`, borderRadius: 10, boxShadow: t.shadow, fontSize: 12 }}
-                            labelStyle={{ color: t.textSec, fontWeight: 700 }}
-                            itemStyle={{ color: t.accent }}
-                          />
-                          <Line
-                            type="monotone" dataKey="level" stroke={t.accent} strokeWidth={3}
-                            dot={{ r: 3, fill: t.accent, stroke: t.surface, strokeWidth: 2 }}
-                            activeDot={{ r: 5, fill: t.accent, stroke: t.surface, strokeWidth: 2 }}
-                            animationDuration={300}
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-                </div>
+              <div style={{ borderTop: `1px solid ${t.border}`, paddingTop: 22, marginTop: 6, margin: '-10px -22px -22px -22px', borderRadius: '0 0 16px 16px', overflow: 'hidden' }}>
+                <IoTMonitor />
               </div>
             )}
           </div>

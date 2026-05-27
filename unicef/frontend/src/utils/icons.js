@@ -1,0 +1,46 @@
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { 
+  faLocationCrosshairs,
+  faLocationDot,
+  faLocationArrow,
+  faBatteryFull,
+  faCalendar,
+  faFontAwesome,
+  faPen,
+  faHouse,
+  faSolarPanel,
+  faMicrochip,
+  faBolt,
+  faFile,
+  faChartArea,
+  faArrowTrendUp,
+  faCalculator,
+  faPlug,
+  faSun,
+  faLightbulb,
+  faArrowTrendDown,
+  faAngleRight
+} from '@fortawesome/free-solid-svg-icons'
+
+library.add(
+  faLocationCrosshairs,
+  faLocationDot,
+  faLocationArrow,
+  faBatteryFull,
+  faCalendar,
+  faFontAwesome,
+  faPen,
+  faHouse,
+  faSolarPanel,
+  faMicrochip,
+  faBolt,
+  faFile,
+  faChartArea,
+  faArrowTrendUp,
+  faArrowTrendDown,
+  faCalculator,
+  faPlug,
+  faSun,
+  faLightbulb,
+  faAngleRight
+)

@@ -1,35 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { MapPin, ArrowRight, School, Hospital, ChevronDown, Check } from 'lucide-react'
+import { MapPin, ArrowRight, Sun, ChevronDown, Check, Sparkles } from 'lucide-react'
 
 // --- CONSTANTS ---
-const districts = [
-  "Balod", "Baloda Bazar", "Balrampur", "Bastar", "Bemetara", "Bijapur", "Bilaspur", 
-  "Dantewada", "Dhamtari", "Durg", "Gariaband", "Gaurela Pendra Marwahi", "Janjgir-Champa", 
-  "Jashpur", "Kabirdham", "Kanker", "Kondagaon", "Korba", "Koriya", "Mahasamund", "Manendragarh-Chirmiri-Bharatpur", 
-  "Mohla-Manpur-Ambagarh Chowki", "Mungeli", "Narayanpur", "Raigarh", "Raipur", "Rajnandgaon", "Sakti", 
-  "Sarangarh-Bilaigarh", "Sukma", "Surajpur", "Surguja", "Khairagarh-Chhuikhadan-Gandai"
-].sort()
 
-const districtStats = {
-  "Balod": { schools: 1569, healthcare: 235 }, "Baloda Bazar": { schools: 2229, healthcare: 207 },
-  "Balrampur": { schools: 2195, healthcare: 229 }, "Bastar": { schools: 2448, healthcare: 280 },
-  "Bemetara": { schools: 1433, healthcare: 163 }, "Bijapur": { schools: 952, healthcare: 114 },
-  "Bilaspur": { schools: 3205, healthcare: 247 }, "Dantewada": { schools: 895, healthcare: 98 },
-  "Dhamtari": { schools: 1712, healthcare: 200 }, "Durg": { schools: 1660, healthcare: 162 },
-  "Gariaband": { schools: 1656, healthcare: 225 }, "Gaurela Pendra Marwahi": { schools: 800, healthcare: 95 },
-  "Janjgir-Champa": { schools: 2913, healthcare: 196 }, "Jashpur": { schools: 2633, healthcare: 304 },
-  "Kabirdham": { schools: 1789, healthcare: 179 }, "Kanker": { schools: 2601, healthcare: 292 },
-  "Kondagaon": { schools: 2061, healthcare: 203 }, "Korba": { schools: 2436, healthcare: 300 },
-  "Koriya": { schools: 1680, healthcare: 109 }, "Mahasamund": { schools: 2137, healthcare: 261 },
-  "Manendragarh-Chirmiri-Bharatpur": { schools: 800, healthcare: 122 },
-  "Mohla-Manpur-Ambagarh Chowki": { schools: 800, healthcare: 98 }, "Mungeli": { schools: 1121, healthcare: 151 },
-  "Narayanpur": { schools: 623, healthcare: 75 }, "Raigarh": { schools: 3493, healthcare: 312 },
-  "Raipur": { schools: 2356, healthcare: 175 }, "Rajnandgaon": { schools: 3164, healthcare: 177 },
-  "Sakti": { schools: 900, healthcare: 141 }, "Sarangarh-Bilaigarh": { schools: 900, healthcare: 138 },
-  "Sukma": { schools: 1052, healthcare: 115 }, "Surajpur": { schools: 2249, healthcare: 259 },
-  "Surguja": { schools: 2265, healthcare: 233 }, "Khairagarh-Chhuikhadan-Gandai": { schools: 800, healthcare: 100 }
-}
 
 const districtCoords = {
   "Balod": [20.73, 81.20], "Baloda Bazar": [21.65, 82.16], "Balrampur": [23.62, 83.61],
@@ -64,9 +38,35 @@ const MeshBackground = () => (
 )
 
 export default function Dashboard() {
+  const [districts, setDistricts] = useState([])
   const [selectedDistrict, setSelectedDistrict] = useState('')
   const [isOpen, setIsOpen] = useState(false)
+  const [solarCount, setSolarCount] = useState(0)
   const dropdownRef = useRef(null)
+  
+  useEffect(() => {
+    fetch('/api/districts')
+      .then(res => res.ok ? res.json() : [])
+      .then(data => {
+        if (Array.isArray(data)) {
+          setDistricts(data)
+        }
+      })
+      .catch(console.error)
+  }, [])
+
+  useEffect(() => {
+    if (selectedDistrict) {
+      fetch(`/api/institutes?district=${encodeURIComponent(selectedDistrict)}`)
+        .then(res => res.ok ? res.json() : [])
+        .then(data => {
+          if (Array.isArray(data)) {
+            setSolarCount(data.length)
+          }
+        })
+        .catch(console.error)
+    }
+  }, [selectedDistrict])
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -85,8 +85,8 @@ export default function Dashboard() {
     : null
 
   const categories = [
-    { title: "Educational Hubs", type: "School", count: districtStats[selectedDistrict]?.schools || 0, color: "from-emerald-500 to-green-600", icon: School },
-    { title: "Healthcare Units", type: "Healthcare", count: districtStats[selectedDistrict]?.healthcare || 0, color: "from-green-500 to-teal-600", icon: Hospital },
+    { title: "Solar Centres", type: "Solar Centre", count: solarCount, color: "from-amber-500 to-orange-600", icon: Sun },
+    { title: "ML Forecast & Energy", path: "/solar-forecast", count: "AI", color: "from-blue-500 to-indigo-600", icon: Sparkles }
   ]
 
   return (
@@ -143,11 +143,11 @@ export default function Dashboard() {
         {selectedDistrict && (
           <div className="space-y-12 animate-in fade-in slide-in-from-bottom-6 duration-700">
             {/* Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto gap-8">
               {categories.map((cat) => (
                 <button
                   key={cat.title}
-                  onClick={() => navigate(`/list/${selectedDistrict}/${cat.type}`)}
+                  onClick={() => cat.path ? navigate(cat.path) : navigate(`/list/${selectedDistrict}/${cat.type}`)}
                   className="group relative p-12 bg-white/60 backdrop-blur-md border border-white rounded-[3.5rem] shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 text-left overflow-hidden"
                 >
                   <div className={`inline-flex items-center justify-center w-16 h-16 mb-10 rounded-2xl bg-gradient-to-br ${cat.color} text-white shadow-lg`}>
@@ -159,7 +159,7 @@ export default function Dashboard() {
                     <span className="text-emerald-600 font-black text-xl">Active</span>
                   </div>
                   <div className="mt-12 flex items-center text-emerald-700 font-extrabold text-sm group-hover:gap-3 transition-all tracking-widest uppercase">
-                    View Infrastructure <ArrowRight size={20} className="ml-1" />
+                    {cat.path ? "Open ML Predictor" : "View Infrastructure"} <ArrowRight size={20} className="ml-1" />
                   </div>
                 </button>
               ))}

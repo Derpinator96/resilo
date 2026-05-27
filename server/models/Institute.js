@@ -5,17 +5,6 @@ const instituteSchema = new mongoose.Schema({
   type: String,
   district: String,
   isMock: { type: Boolean, default: false },
-  waterQuality: {
-    ph: Number,
-    tds: Number,
-    turbidity: Number,
-    statusDesc: String
-  },
-  waterLevel: {
-    level: Number,
-    pumpStatus: String,
-    statusDesc: String
-  },
   solarGrid: {
     generation: Number,
     efficiency: Number,

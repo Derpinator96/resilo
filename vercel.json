@@ -5,11 +5,7 @@
       "destination": "https://your-backend-url.onrender.com/api/:path*"
     },
     {
-      "source": "/((?!api).*)/",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/((?!api)[^/]*)$",
+      "source": "/((?!api).*)" ,
       "destination": "/index.html"
     }
   ]

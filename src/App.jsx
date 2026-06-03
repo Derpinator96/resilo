@@ -1,6 +1,7 @@
 import { Routes, Route, Link, useLocation } from 'react-router-dom'
 import { Sparkles, ShieldAlert } from 'lucide-react'
 import { SignedIn, SignedOut, UserButton, SignInButton, SignUpButton, useUser } from '@clerk/clerk-react'
+import LandingPage from './pages/LandingPage'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Sanitation from './pages/Sanitation'
@@ -13,7 +14,7 @@ import AccessRequestForm from './components/AccessRequestForm'
 
 function GlobalLayout({ children }) {
   const location = useLocation()
-  const isLoginPage = location.pathname === '/'
+  const isLoginPage = location.pathname === '/' || location.pathname === '/signUp'
   const { user } = useUser()
   const role = user?.publicMetadata?.role || 'community'
   const isAuthority = role === 'admin' || role === 'super_admin'
@@ -71,7 +72,8 @@ function App() {
   return (
     <GlobalLayout>
       <Routes>
-        <Route path="/" element={<Login />} />
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/signUp" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/sanitation" element={<Sanitation />} />
         <Route path="/list/:district/:type" element={<InstituteList />} />

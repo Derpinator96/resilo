@@ -109,21 +109,32 @@ app.post('/api/sanitation/scan', upload.single('image'), async (req, res) => {
 
     let resultString = response.choices[0].message.content
 
-    // Process Llama's Markdown and conversational text wrapper to find the JSON
-    // 1. Try to find content within ```json ... ``` blocks
-    const jsonMatch = resultString.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
-    if (jsonMatch) {
-      resultString = jsonMatch[1];
-    } else {
-      // 2. If no code blocks, blindly find the first { and last }
-      const startIndex = resultString.indexOf('{');
-      const endIndex = resultString.lastIndexOf('}');
-      if (startIndex !== -1 && endIndex !== -1 && endIndex >= startIndex) {
-        resultString = resultString.substring(startIndex, endIndex + 1);
+    let parsedResult;
+    try {
+      // Process Llama's Markdown and conversational text wrapper to find the JSON
+      // 1. Try to find content within ```json ... ``` blocks
+      let extracted = resultString;
+      const jsonMatch = extracted.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
+      if (jsonMatch) {
+        extracted = jsonMatch[1];
+      } else {
+        // 2. If no code blocks, blindly find the first { and last }
+        const startIndex = extracted.indexOf('{');
+        const endIndex = extracted.lastIndexOf('}');
+        if (startIndex !== -1 && endIndex !== -1 && endIndex >= startIndex) {
+          extracted = extracted.substring(startIndex, endIndex + 1);
+        }
       }
+      parsedResult = JSON.parse(extracted);
+    } catch (parseError) {
+      console.error("Failed to parse JSON from AI response:", resultString);
+      // Fallback response if the AI refuses or returns invalid format
+      parsedResult = {
+        hygieneStatus: "AI Analysis Unclear (Possible Refusal)",
+        visibleContaminants: ["Unable to detect correctly from AI response"],
+        potentialDiseases: []
+      };
     }
-
-    const parsedResult = JSON.parse(resultString)
 
     res.json(parsedResult)
 

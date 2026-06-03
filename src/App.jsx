@@ -33,6 +33,15 @@ function GlobalLayout({ children }) {
               Authority Portal
             </Link>
           )}
+          {!isLoginPage && location.pathname !== '/sanitation' && (
+            <Link
+              to="/sanitation"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-white shadow-sm bg-slate-900 rounded-lg hover:bg-slate-800 transition-all"
+            >
+              <Sparkles size={16} className="text-blue-400" />
+              <span className="hidden sm:inline">AI Sanitation Scan</span>
+            </Link>
+          )}
           <SignedOut>
             <SignInButton mode="modal">
               <button className="px-4 py-2 text-sm font-bold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700">Sign In</button>
@@ -54,16 +63,7 @@ function GlobalLayout({ children }) {
 
       {children}
 
-      {/* Global Sanitation Scanner FAB (Hidden on Login & Sanitation itself) */}
-      {!isLoginPage && location.pathname !== '/sanitation' && (
-        <Link
-          to="/sanitation"
-          className="fixed z-50 flex items-center gap-2 px-5 py-4 font-bold text-white shadow-xl bg-slate-900 rounded-full bottom-6 right-6 hover:bg-slate-800 hover:scale-105 active:scale-95 transition-all duration-300"
-        >
-          <Sparkles size={20} className="text-blue-400" />
-          <span className="hidden sm:inline">AI Sanitation Scan</span>
-        </Link>
-      )}
+      {/* Global Sanitation Scanner moved to Auth Header */}
     </div>
   )
 }

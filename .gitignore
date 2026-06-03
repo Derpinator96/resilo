@@ -8,3 +8,19 @@ dist/
 *-err.txt
 public/*
 unicef/*
+
+# Subagents & Local Skills
+.agents/
+skills-lock.json
+
+# Python cache files
+__pycache__/
+*.pyc
+
+# Local log files & temp scripts
+server/backend-log*.txt
+server/error.html
+server/test.js
+inspect_db.js
+strip_water.cjs
+upload_cloudinary.cjs

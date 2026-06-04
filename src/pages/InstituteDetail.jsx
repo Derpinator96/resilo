@@ -1,73 +1,79 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { useUser } from '@clerk/clerk-react'
 import {
-  ArrowLeft, Droplet, BatteryCharging, Power, ThermometerSun,
+  ArrowLeft, BatteryCharging, Power, ThermometerSun,
   AlertTriangle, CheckCircle2, ShieldAlert, X, Activity,
-  Sun, Moon, Wifi, TrendingUp, TrendingDown, MoreHorizontal
+  Wifi, TrendingUp, TrendingDown, MoreHorizontal, MapPin
 } from 'lucide-react'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import IoTMonitor from '../components/IoTMonitor'
+import SolarForecast from './SolarForecast' 
+
+// --- FUTURISTIC SVG PATTERN GENERATORS ---
+const generateCircuitGrid = () => {
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+      <path d="M 100 0 L 0 0 0 100" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="0.5"/>
+      <circle cx="100" cy="100" r="2" fill="rgba(255,255,255,0.4)"/>
+      <path d="M 20 20 L 80 20 L 80 80" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1" stroke-dasharray="4 4"/>
+      <circle cx="20" cy="20" r="1.5" fill="rgba(255,255,255,0.3)"/>
+      <circle cx="80" cy="80" r="1.5" fill="rgba(255,255,255,0.3)"/>
+    </svg>
+  `
+  return `url("data:image/svg+xml;utf8,${encodeURIComponent(svg.trim())}")`
+}
+
+const generateContourLines = () => {
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+      <path d="M -50 100 Q 50 50 100 150 T 250 100" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+      <path d="M -50 120 Q 50 70 100 170 T 250 120" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+      <path d="M -50 140 Q 50 90 100 190 T 250 140" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+    </svg>
+  `
+  return `url("data:image/svg+xml;utf8,${encodeURIComponent(svg.trim())}")`
+}
+
+// --- REUSABLE GLASS & LAYOUT CLASSES ---
+const glassCardClass = "bg-white/25 backdrop-blur-2xl border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.15)] rounded-3xl transition-all duration-300 hover:bg-white/35 hover:border-white/70 hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,0.2)]"
+// This forces exactly 3 cards per row with gap-8 (2rem) and automatically centers them if fewer exist.
+const flexCardWidth = "w-full md:w-[calc(50%-1rem)] lg:w-[calc(33.333%-1.34rem)]" 
 
 export default function InstituteDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
   const { user } = useUser()
 
-  let [inst, setInst] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [isDark, setIsDark] = useState(false)
+  let [inst, setInst] = useState(location.state || null)
+  const [loading, setLoading] = useState(!inst)
 
-  // Report Modal State
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [reportComponent, setReportComponent] = useState('')
   const [reportDescription, setReportDescription] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-
-  // Interactive Solar Grid State
   const [isSolarExpanded, setIsSolarExpanded] = useState(false)
 
-  const triggerAutoEscalation = async (componentName, desc) => {
-    if (!inst) return;
-    try {
-      await fetch('/api/reports', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          instituteId: inst._id,
-          instituteName: inst.name,
-          component: componentName,
-          type: 'Auto',
-          description: desc
-        })
-      })
-    } catch (e) {
-      console.error("Auto escalation failed", e)
-    }
-  }
-
   useEffect(() => {
-    // Determine if it's our mock login via ID to seed properly
+    if (inst) return;
     const fetchInst = async () => {
       if (id.includes('mock') || id.includes('Alpha')) {
         setTimeout(() => {
           setInst({
             _id: id,
+            district: 'Raigarh',
             name: id.includes('Alpha') ? 'Mock Govt School Alpha' : 'Mock District Health Centre',
             type: id.includes('Alpha') ? 'School' : 'Healthcare',
-
-            
-            solarGrid: { generation: 1, efficiency: 20, statusDesc: 'Critical: 20% efficiency' },
-            battery: { level: 20, health: 'Replace Soon' },
-            electricity: { isAvailable: false },
-            powerCuts: { history: ['Yesterday 2PM'], frequency: 'Frequent' },
-            infraClimate: { temp: 34, humidity: 70 },
-            equipmentHealth: { medicineFridgeTemp: 9, statusDesc: 'Critical: Too Warm' }
+            solarGrid: { generation: 4.2, efficiency: 92, statusDesc: 'Optimal Output' },
+            battery: { level: 95, health: 'Optimal' },
+            electricity: { isAvailable: true },
+            powerCuts: { history: ['Yesterday 2PM'], frequency: 'Rare' },
+            infraClimate: { temp: 28, humidity: 45 },
+            equipmentHealth: { medicineFridgeTemp: 4, statusDesc: 'Stable: In Range' }
           })
           setLoading(false)
         }, 500)
       } else {
-        // Fetch actual institute from database if integrated
         try {
           const response = await fetch(`/api/institutes/${id}`)
           const data = await response.json()
@@ -80,7 +86,7 @@ export default function InstituteDetail() {
       }
     }
     fetchInst()
-  }, [id])
+  }, [id, inst])
 
   const handleOpenReport = (componentName) => {
     setReportComponent(componentName)
@@ -94,13 +100,7 @@ export default function InstituteDetail() {
       await fetch('/api/reports', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          instituteId: inst._id,
-          instituteName: inst.name,
-          component: reportComponent,
-          type: 'Manual',
-          description: reportDescription
-        })
+        body: JSON.stringify({ instituteId: inst._id, instituteName: inst.name, component: reportComponent, type: 'Manual', description: reportDescription })
       })
       setIsModalOpen(false)
       setReportDescription('')
@@ -113,45 +113,18 @@ export default function InstituteDetail() {
     }
   }
 
-  // ── THEME TOKENS ──────────────────────────────────────────────────────────
-  const t = {
-    bg: isDark ? '#0f1117' : '#f0f2f7',
-    surface: isDark ? '#1a1d27' : '#ffffff',
-    surface2: isDark ? '#22263a' : '#f7f8fc',
-    border: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)',
-    text: isDark ? '#e8eaf0' : '#111827',
-    textSec: isDark ? '#8892a4' : '#6b7280',
-    textMuted: isDark ? '#5a6478' : '#9ca3af',
-    accent: '#4f6ef7',
-    accentBg: isDark ? 'rgba(79,110,247,0.15)' : 'rgba(79,110,247,0.08)',
-    danger: '#ef4444',
-    dangerBg: isDark ? 'rgba(239,68,68,0.15)' : 'rgba(239,68,68,0.07)',
-    success: '#10b981',
-    successBg: isDark ? 'rgba(16,185,129,0.15)' : 'rgba(16,185,129,0.07)',
-    warn: '#f59e0b',
-    warnBg: isDark ? 'rgba(245,158,11,0.15)' : 'rgba(245,158,11,0.07)',
-    shadow: isDark ? '0 4px 24px rgba(0,0,0,0.4)' : '0 4px 24px rgba(0,0,0,0.06)',
-    shadowLg: isDark ? '0 12px 48px rgba(0,0,0,0.5)' : '0 12px 48px rgba(0,0,0,0.1)',
-  }
-
   if (loading) return (
-    <div style={{ minHeight: '100vh', background: isDark ? '#0f1117' : '#f0f2f7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ width: 44, height: 44, border: `3px solid ${isDark ? '#2a2f45' : '#e2e8f0'}`, borderTopColor: '#4f6ef7', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="w-12 h-12 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin" />
     </div>
   )
 
   if (!inst) return (
-    <div style={{ minHeight: '100vh', background: t.bg, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: t.text }}>
-      <ShieldAlert size={48} style={{ color: t.warn, marginBottom: 16 }} />
-      <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8 }}>Facility Data Unavailable</h2>
-      <p style={{ color: t.textSec, marginBottom: 24 }}>We could not locate the infrastructure data for this facility.</p>
-      <button
-        onClick={() => navigate(-1)}
-        style={{ padding: '10px 20px', borderRadius: 8, background: t.accent, color: '#fff', border: 'none', fontWeight: 600, cursor: 'pointer' }}
-      >
-        Return to Dashboard
-      </button>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 text-slate-800">
+      <ShieldAlert size={48} className="text-amber-500 mb-4" />
+      <h2 className="text-2xl font-bold mb-2">Facility Data Unavailable</h2>
+      <p className="text-slate-500 mb-6">We could not locate the infrastructure data for this facility.</p>
+      <button onClick={() => navigate(-1)} className="px-6 py-3 rounded-xl bg-purple-600 text-white font-bold">Return to Dashboard</button>
     </div>
   )
 
@@ -165,449 +138,251 @@ export default function InstituteDetail() {
 
   const isStaff = !!user
 
-  // ── SUB-COMPONENTS ────────────────────────────────────────────────────────
+  // ── SUB-COMPONENTS ──
   const StatusPill = ({ isCritical, text }) => (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: 8,
-      padding: '8px 12px', borderRadius: 10,
-      background: isCritical ? t.dangerBg : t.successBg,
-      border: `1px solid ${isCritical ? 'rgba(239,68,68,0.2)' : 'rgba(16,185,129,0.2)'}`,
-      marginBottom: 16
-    }}>
-      {isCritical
-        ? <ShieldAlert size={14} style={{ color: t.danger, flexShrink: 0 }} />
-        : <CheckCircle2 size={14} style={{ color: t.success, flexShrink: 0 }} />}
-      <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: isCritical ? t.danger : t.success }}>
-        {isCritical ? 'Critical' : 'Stable'}
-      </span>
-      <span style={{ fontSize: 12, color: t.textSec, marginLeft: 2 }}>{text}</span>
+    <div className={`flex items-center gap-2 px-3 py-2 rounded-xl mb-4 border ${isCritical ? 'bg-red-500/20 border-red-500/30 text-red-700' : 'bg-emerald-500/20 border-emerald-500/30 text-emerald-800'}`}>
+      {isCritical ? <ShieldAlert size={14} /> : <CheckCircle2 size={14} />}
+      <span className="text-xs font-bold uppercase tracking-wider">{isCritical ? 'Critical' : 'Stable'}</span>
+      <span className="text-xs ml-1 opacity-80">{text}</span>
     </div>
   )
 
-  const MetricRow = ({ label, value, accent }) => (
-    <div style={{
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: '10px 0', borderBottom: `1px solid ${t.border}`
-    }}>
-      <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: t.textMuted }}>{label}</span>
-      <span style={{ fontSize: 15, fontWeight: 700, color: accent || t.text }}>{value}</span>
+  const MetricRow = ({ label, value, isAlert }) => (
+    <div className="flex items-center justify-between py-3 border-b border-white/20 last:border-0">
+      <span className="text-xs font-bold tracking-wider uppercase text-purple-950/60">{label}</span>
+      <span className={`text-base font-extrabold ${isAlert ? 'text-red-600' : 'text-black'}`}>{value}</span>
     </div>
   )
 
   const ReportBtn = ({ name, stopProp }) => isStaff ? (
-    <button
-      onClick={e => { if (stopProp) e.stopPropagation(); handleOpenReport(name) }}
-      style={{
-        display: 'flex', alignItems: 'center', gap: 5,
-        padding: '5px 10px', borderRadius: 7, border: 'none', cursor: 'pointer',
-        background: t.dangerBg, color: t.danger,
-        fontSize: 11, fontWeight: 700, letterSpacing: '0.04em', transition: 'opacity 0.15s'
-      }}
-    >
+    <button onClick={e => { if (stopProp) e.stopPropagation(); handleOpenReport(name) }} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 text-red-600 hover:bg-red-500/20 text-xs font-bold tracking-wide transition-colors">
       <AlertTriangle size={12} /> Report
     </button>
   ) : null
 
-  const DataCard = ({ title, icon: Icon, iconColor, iconBg, statusDesc, isCritical, children }) => (
-    <div style={{
-      background: t.surface, borderRadius: 16, padding: 22,
-      border: `1px solid ${t.border}`, boxShadow: t.shadow,
-      display: 'flex', flexDirection: 'column', gap: 0
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 10, background: iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Icon size={18} style={{ color: iconColor }} />
-          </div>
-          <span style={{ fontSize: 13, fontWeight: 700, color: t.text, letterSpacing: '0.01em' }}>{title}</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <ReportBtn name={title} />
-          <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.textMuted, padding: 4 }}>
-            <MoreHorizontal size={16} />
-          </button>
-        </div>
-      </div>
-      <StatusPill isCritical={isCritical} text={statusDesc} />
-      <div>{children}</div>
-    </div>
-  )
-
   return (
-    <div style={{ minHeight: '100vh', background: t.bg, fontFamily: "'DM Sans','Segoe UI',sans-serif", color: t.text }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
-        * { box-sizing: border-box; }
-        input, textarea, button { font-family: inherit; }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(128,128,128,0.2); border-radius: 2px; }
-        @keyframes spin    { to { transform: rotate(360deg); } }
-        @keyframes fadeIn  { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
-        @keyframes ping    { 0%,100%{opacity:1} 50%{opacity:0.25} }
-        @keyframes fabGlow {
-          0%,100% { box-shadow: 0 8px 32px rgba(79,110,247,0.4), 0 2px 8px rgba(0,0,0,0.12); }
-          50%      { box-shadow: 0 8px 44px rgba(79,110,247,0.65), 0 2px 8px rgba(0,0,0,0.12); }
-        }
-        @keyframes fabGlowDark {
-          0%,100% { box-shadow: 0 8px 32px rgba(79,110,247,0.3), 0 2px 8px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07); }
-          50%      { box-shadow: 0 8px 44px rgba(79,110,247,0.5), 0 2px 8px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07); }
-        }
-        .card-anim { animation: fadeIn 0.35s ease both; }
-        .nav-btn:hover { background: rgba(79,110,247,0.1) !important; color: #4f6ef7 !important; }
-        .ai-fab { transition: transform 0.2s cubic-bezier(.4,0,.2,1) !important; }
-        .ai-fab:hover { transform: translateY(-3px) scale(1.03) !important; }
-        .ai-fab:active { transform: translateY(0) scale(0.97) !important; }
-        textarea:focus { outline: none; box-shadow: 0 0 0 2px rgba(79,110,247,0.3); }
-      `}</style>
-
-      {/* ── TOP HEADER BAR ── */}
-      <div style={{
-        background: t.surface, borderBottom: `1px solid ${t.border}`,
-        padding: '0 28px', height: 60,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        position: 'sticky', top: 0, zIndex: 50,
-        backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <button
-            onClick={() => navigate(-1)}
-            className="nav-btn"
-            style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              background: 'none', border: `1px solid ${t.border}`, borderRadius: 9,
-              padding: '6px 12px', cursor: 'pointer', color: t.textSec,
-              fontSize: 12, fontWeight: 600, transition: 'all 0.15s'
-            }}
-          >
-            <ArrowLeft size={14} /> Back
-          </button>
-          <div style={{ width: 1, height: 22, background: t.border }} />
-          <div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: t.text, lineHeight: 1.2 }}>{inst.name}</div>
-            <div style={{ fontSize: 11, color: t.textMuted, marginTop: 2 }}>Real-time IoT Telemetry</div>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{
-            padding: '4px 10px', borderRadius: 7, fontSize: 11, fontWeight: 700,
-            background: inst.type === 'Healthcare' ? 'rgba(59,130,246,0.1)' : 'rgba(16,185,129,0.1)',
-            color: inst.type === 'Healthcare' ? '#3b82f6' : '#10b981',
-            letterSpacing: '0.04em'
-          }}>{inst.type}</span>
-
-          <span style={{
-            padding: '4px 10px', borderRadius: 7, fontSize: 11, fontWeight: 700,
-            background: t.accentBg, color: t.accent, letterSpacing: '0.04em'
-          }}>{inst.district} District</span>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 7, background: t.successBg }}>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: t.success, display: 'block', animation: 'ping 1.5s infinite' }} />
-            <span style={{ fontSize: 11, fontWeight: 700, color: t.success }}>Live</span>
-          </div>
-
-          {/* Dark / Light toggle */}
-          <button
-            onClick={() => setIsDark(p => !p)}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 7,
-              background: t.surface2, border: `1px solid ${t.border}`,
-              borderRadius: 10, padding: '6px 12px', cursor: 'pointer',
-              fontSize: 12, fontWeight: 600, color: t.textSec, transition: 'all 0.2s'
-            }}
-          >
-            {isDark ? <Sun size={14} style={{ color: '#f59e0b' }} /> : <Moon size={14} style={{ color: '#6366f1' }} />}
-            {isDark ? 'Light' : 'Dark'}
-          </button>
-        </div>
-      </div>
+    <div className="relative min-h-screen overflow-hidden font-sans">
+      {/* ── BACKGROUND ── */}
+      <div className="absolute inset-0 -z-10" style={{ background: `linear-gradient(135deg, #7C3AED 0%, #A855F7 18%, #C084FC 35%, #D946EF 52%, #EC4899 72%, #F9A8D4 88%, #FFF7FC 100%)` }} />
+      <div className="fixed top-[-10rem] left-[-10rem] w-[40rem] h-[40rem] rounded-full bg-violet-600/30 blur-[150px] pointer-events-none" />
+      <div className="fixed bottom-[-10rem] right-[-10rem] w-[40rem] h-[40rem] rounded-full bg-fuchsia-600/30 blur-[150px] pointer-events-none" />
 
       {/* ── MAIN CONTENT ── */}
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '28px 24px 100px' }}>
+      <div className="relative z-10 max-w-7xl mx-auto px-4 py-8 lg:px-8 pb-32">
+        
+        {/* Navigation */}
+        <button onClick={() => navigate(-1)} className="flex items-center gap-2 mb-10 text-sm font-bold text-purple-950 hover:text-black transition-colors hover:scale-105 origin-left">
+          <ArrowLeft size={18} strokeWidth={2.5} /> Back
+        </button>
 
-        {/* ── SUMMARY METRIC BAR ── */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14, marginBottom: 24 }}>
+        {/* ── HERO HEADER ── */}
+        <header className="text-center mb-16 flex flex-col items-center">
+          <div className="flex items-center justify-center gap-3 mb-6">
+            <span className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest bg-white/30 backdrop-blur-md border border-white/50 text-purple-950 shadow-sm hover:scale-105 transition-transform">
+              <MapPin size={14} /> {inst.district} District
+            </span>
+            <span className="px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest bg-purple-600/10 backdrop-blur-md border border-purple-500/20 text-purple-900 shadow-sm hover:scale-105 transition-transform">
+              {inst.type} Facility
+            </span>
+            <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 backdrop-blur-md border border-emerald-500/20 shadow-sm hover:scale-105 transition-transform">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+              <span className="text-xs font-black uppercase tracking-widest text-emerald-700">Live Telemetry</span>
+            </div>
+          </div>
+          <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-violet-950 via-fuchsia-950 to-pink-900 mb-4 text-center px-4 leading-tight capitalize">
+            {inst.name}
+          </h1>
+          <p className="text-lg font-bold text-purple-950/70 max-w-2xl mx-auto">
+            Real-Time Solar Infrastructure Monitoring & AI Climate Forecast
+          </p>
+        </header>
+
+        {/* ── PREMIUM KPI CARDS (Flex Centered) ── */}
+        <div className="flex flex-wrap justify-center gap-8 mb-12">
           {[
-            { label: 'Solar Efficiency', value: `${inst.solarGrid.efficiency}%`, sub: `${inst.solarGrid.generation} kW generation`, icon: BatteryCharging, color: '#f59e0b', bg: isDark ? 'rgba(245,158,11,0.15)' : 'rgba(245,158,11,0.1)', trend: inst.solarGrid.efficiency < 50 ? 'down' : 'up' },
-            
-            { label: 'Battery Backup', value: `${inst.battery.level}%`, sub: inst.battery.health, icon: Power, color: '#8b5cf6', bg: isDark ? 'rgba(139,92,246,0.15)' : 'rgba(139,92,246,0.1)', trend: inst.battery.level < 30 ? 'down' : 'up' },
-            { label: 'Infra Temp', value: `${inst.infraClimate.temp}°C`, sub: `Humidity ${inst.infraClimate.humidity}%`, icon: ThermometerSun, color: '#ef4444', bg: isDark ? 'rgba(239,68,68,0.15)' : 'rgba(239,68,68,0.1)', trend: inst.infraClimate.temp > 35 ? 'down' : 'up' },
+            { label: 'Solar Efficiency', value: `${inst.solarGrid.efficiency}%`, sub: `${inst.solarGrid.generation} kW generation`, icon: BatteryCharging, color: 'text-amber-600', bg: 'bg-amber-500/20', trend: inst.solarGrid.efficiency < 50 ? 'down' : 'up' },
+            { label: 'Battery Backup', value: `${inst.battery.level}%`, sub: inst.battery.health, icon: Power, color: 'text-purple-600', bg: 'bg-purple-500/20', trend: inst.battery.level < 30 ? 'down' : 'up' },
+            { label: 'Infra Temp', value: `${inst.infraClimate.temp}°C`, sub: `Humidity ${inst.infraClimate.humidity}%`, icon: ThermometerSun, color: 'text-pink-600', bg: 'bg-pink-500/20', trend: inst.infraClimate.temp > 35 ? 'down' : 'up' },
           ].map((m, i) => (
-            <div key={i} className="card-anim" style={{
-              background: t.surface, borderRadius: 14, padding: '18px 20px',
-              border: `1px solid ${t.border}`, boxShadow: t.shadow,
-              animationDelay: `${i * 0.06}s`
-            }}>
-              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: m.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <m.icon size={18} style={{ color: m.color }} />
+            <div key={i} className={`${flexCardWidth} ${glassCardClass} p-8 relative overflow-hidden group`}>
+              <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="relative z-10">
+                <div className="flex items-start justify-between mb-6">
+                  <div className={`w-14 h-14 rounded-2xl ${m.bg} flex items-center justify-center border border-white/30 backdrop-blur-md`}>
+                    <m.icon size={28} className={m.color} />
+                  </div>
+                  <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${m.trend === 'up' ? 'bg-emerald-500/20 text-emerald-800' : 'bg-red-500/20 text-red-800'}`}>
+                    {m.trend === 'up' ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+                    {m.trend === 'up' ? 'Normal' : 'Alert'}
+                  </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: m.trend === 'up' ? t.success : t.danger }}>
-                  {m.trend === 'up' ? <TrendingUp size={13} /> : <TrendingDown size={13} />}
-                  <span style={{ fontSize: 10, fontWeight: 700 }}>{m.trend === 'up' ? 'Normal' : 'Alert'}</span>
-                </div>
+                <div className="text-5xl font-extrabold text-black tracking-tight mb-2">{m.value}</div>
+                <div className="text-sm font-bold tracking-widest uppercase text-purple-950/60 mb-1">{m.label}</div>
+                <div className="text-xs font-semibold text-purple-950/40">{m.sub}</div>
               </div>
-              <div style={{ fontSize: 26, fontWeight: 800, color: t.text, lineHeight: 1, letterSpacing: '-0.02em' }}>{m.value}</div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: t.textMuted, marginTop: 4 }}>{m.label}</div>
-              <div style={{ fontSize: 11, color: t.textMuted, marginTop: 3, opacity: 0.7 }}>{m.sub}</div>
             </div>
           ))}
         </div>
 
-        {/* ── MAIN CARD GRID ── */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 14 }}>
-
-          {/* SOLAR GRID & BATTERY (expandable) ── */}
+        {/* ── TELEMETRY GRID (Flex Centered) ── */}
+        <div className="flex flex-wrap justify-center gap-8 mb-16">
+          
+          {/* SOLAR GRID (Spans dynamically when expanded) */}
           <div
-            className="card-anim"
-            style={{
-              background: t.surface, borderRadius: 16,
-              border: isSolarExpanded ? `2px solid #f59e0b` : `1px solid ${t.border}`,
-              boxShadow: isSolarExpanded ? t.shadowLg : t.shadow,
-              gridColumn: isSolarExpanded ? 'span 3' : undefined,
-              transition: 'all 0.4s cubic-bezier(.4,0,.2,1)',
-              cursor: (!isSolarExpanded && isStaff) ? 'pointer' : 'default',
-              padding: 22
-            }}
+            className={`
+              ${glassCardClass} p-8 relative overflow-hidden group cursor-pointer 
+              ${isSolarExpanded 
+                ? 'w-full border-amber-400/50 shadow-[0_0_40px_rgba(245,158,11,0.2)]' 
+                : flexCardWidth
+              }
+            `}
             onClick={() => { if (!isSolarExpanded && isStaff) setIsSolarExpanded(true) }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: isDark ? 'rgba(245,158,11,0.15)' : 'rgba(245,158,11,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <BatteryCharging size={18} style={{ color: '#f59e0b' }} />
-                </div>
-                <span style={{ fontSize: 13, fontWeight: 700, color: t.text }}>Solar Grid & Backup Battery</span>
-
-                {isSolarExpanded && isStaff && (
-                  <span style={{ fontSize: 11, fontWeight: 700, color: '#f59e0b', background: isDark ? 'rgba(245,158,11,0.15)' : 'rgba(245,158,11,0.08)', padding: '2px 8px', borderRadius: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <Wifi size={11} /> Live Telemetry
-                  </span>
-                )}
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                {isSolarExpanded ? (
-                  <button
-                    onClick={e => { e.stopPropagation(); setIsSolarExpanded(false) }}
-                    style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 8, border: `1px solid ${t.border}`, background: 'none', color: t.textSec, cursor: 'pointer', fontSize: 12, fontWeight: 600 }}
-                  >
-                    <X size={14} /> Close
-                  </button>
-                ) : (
-                  <ReportBtn name="Solar Grid" stopProp />
-                )}
-                <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.textMuted, padding: 4 }}>
-                  <MoreHorizontal size={16} />
-                </button>
-              </div>
-            </div>
-
-            <StatusPill
-              isCritical={inst.solarGrid.efficiency < 50}
-              text={inst.solarGrid.statusDesc}
-            />
-
-            {!isSolarExpanded ? (
-              <div>
-                <MetricRow label="Generation" value={`${inst.solarGrid.generation} kW`} />
-                <MetricRow label="Efficiency" value={`${inst.solarGrid.efficiency}%`} accent={inst.solarGrid.efficiency < 50 ? t.danger : t.success} />
-                {isStaff && (
-                  <div style={{
-                    marginTop: 14, padding: '10px 14px', borderRadius: 10,
-                    background: isDark ? 'rgba(245,158,11,0.15)' : 'rgba(245,158,11,0.08)', border: `1px solid rgba(245,158,11,0.2)`,
-                    display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center'
-                  }}>
-                    <Activity size={14} style={{ color: '#f59e0b', animation: 'ping 1.5s infinite' }} />
-                    <span style={{ fontSize: 12, fontWeight: 700, color: '#f59e0b' }}>Click to view Live IoT Telemetry</span>
+            <div className="absolute inset-0 opacity-20 group-hover:opacity-30 transition-opacity duration-500 pointer-events-none" style={{ backgroundImage: generateCircuitGrid(), backgroundSize: '100px 100px' }} />
+            
+            <div className="relative z-10 flex flex-col h-full">
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-amber-500/20 flex items-center justify-center border border-white/30 backdrop-blur-md">
+                    <BatteryCharging size={24} className="text-amber-600" />
                   </div>
-                )}
+                  <div>
+                    <h3 className="text-lg font-black text-black tracking-tight">Solar Grid Network</h3>
+                    {isSolarExpanded && isStaff && (
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-amber-700 mt-1">
+                        <Wifi size={12} className="animate-pulse" /> Live Node Telemetry
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  {isSolarExpanded ? (
+                    <button onClick={e => { e.stopPropagation(); setIsSolarExpanded(false) }} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/40 hover:bg-white/60 text-black text-xs font-bold transition-colors">
+                      <X size={14} /> Close Map
+                    </button>
+                  ) : (
+                    <ReportBtn name="Solar Grid" stopProp />
+                  )}
+                  <button className="p-2 text-purple-950/60 hover:text-black transition-colors"><MoreHorizontal size={20} /></button>
+                </div>
               </div>
-            ) : (
-              <div style={{ borderTop: `1px solid ${t.border}`, paddingTop: 22, marginTop: 6, margin: '-10px -22px -22px -22px', borderRadius: '0 0 16px 16px', overflow: 'hidden' }}>
-                <IoTMonitor />
-              </div>
-            )}
+
+              <StatusPill isCritical={inst.solarGrid.efficiency < 50} text={inst.solarGrid.statusDesc} />
+
+              {!isSolarExpanded ? (
+                <div className="flex-grow flex flex-col justify-end mt-4">
+                  <MetricRow label="Active Generation" value={`${inst.solarGrid.generation} kW`} />
+                  <MetricRow label="Node Efficiency" value={`${inst.solarGrid.efficiency}%`} isAlert={inst.solarGrid.efficiency < 50} />
+                  {isStaff && (
+                    <div className="mt-6 flex items-center justify-center gap-2 py-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-800 text-xs font-bold tracking-wide">
+                      <Activity size={14} className="animate-pulse" /> Click to map live IoT nodes
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="mt-8 rounded-2xl overflow-hidden border border-white/30 bg-white/10 backdrop-blur-md h-[400px]">
+                  <IoTMonitor />
+                </div>
+              )}
+            </div>
           </div>
 
           {/* INFRA CLIMATE */}
-          <DataCard
-            title="Infra Climate"
-            icon={ThermometerSun}
-            iconColor="#ec4899"
-            iconBg={isDark ? 'rgba(236,72,153,0.15)' : 'rgba(236,72,153,0.1)'}
-            statusDesc={`Local ambient: ${inst.infraClimate.temp}°C`}
-            isCritical={inst.infraClimate.temp > 40}
-          >
-            <MetricRow label="Temperature" value={`${inst.infraClimate.temp}°C`} accent={inst.infraClimate.temp > 35 ? t.warn : t.success} />
-            <MetricRow label="Humidity" value={`${inst.infraClimate.humidity}%`} accent={inst.infraClimate.humidity > 70 ? t.warn : t.success} />
-            <div style={{ marginTop: 14 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                <span style={{ fontSize: 10, color: t.textMuted }}>0°C</span>
-                <span style={{ fontSize: 10, color: t.textMuted }}>50°C</span>
+          <div className={`${flexCardWidth} ${glassCardClass} p-8 relative overflow-hidden group`}>
+            <div className="absolute inset-0 opacity-20 group-hover:opacity-30 transition-opacity duration-500 pointer-events-none" style={{ backgroundImage: generateContourLines(), backgroundSize: '200px 200px', backgroundPosition: 'center' }} />
+            <div className="relative z-10 flex flex-col h-full">
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-pink-500/20 flex items-center justify-center border border-white/30 backdrop-blur-md">
+                    <ThermometerSun size={24} className="text-pink-600" />
+                  </div>
+                  <h3 className="text-lg font-black text-black tracking-tight">Facility Climate</h3>
+                </div>
+                <div className="flex items-center gap-3">
+                  <ReportBtn name="Climate" />
+                  <button className="p-2 text-purple-950/60 hover:text-black transition-colors"><MoreHorizontal size={20} /></button>
+                </div>
               </div>
-              <div style={{ height: 6, borderRadius: 99, background: 'linear-gradient(90deg,#3b82f6,#10b981,#f59e0b,#ef4444)', position: 'relative' }}>
-                <div style={{
-                  position: 'absolute', top: '50%', transform: `translateX(-50%) translateY(-50%)`,
-                  left: `${(inst.infraClimate.temp / 50) * 100}%`,
-                  width: 12, height: 12, borderRadius: '50%', background: t.surface,
-                  border: `2px solid ${t.warn}`, boxShadow: `0 0 6px ${t.warn}`
-                }} />
+              <StatusPill isCritical={inst.infraClimate.temp > 40} text={`Ambient: ${inst.infraClimate.temp}°C`} />
+              <div className="flex-grow flex flex-col justify-end mt-4">
+                <MetricRow label="Internal Temp" value={`${inst.infraClimate.temp}°C`} isAlert={inst.infraClimate.temp > 35} />
+                <MetricRow label="Humidity Index" value={`${inst.infraClimate.humidity}%`} isAlert={inst.infraClimate.humidity > 70} />
               </div>
             </div>
-          </DataCard>
+          </div>
 
           {/* COLD CHAIN (Healthcare only) */}
           {inst.type === 'Healthcare' && (
-            <DataCard
-              title="Cold Chain"
-              icon={ThermometerSun}
-              iconColor="#10b981"
-              iconBg={isDark ? 'rgba(16,185,129,0.15)' : 'rgba(16,185,129,0.1)'}
-              statusDesc={inst.equipmentHealth.statusDesc}
-              isCritical={inst.equipmentHealth.medicineFridgeTemp > 8 || inst.equipmentHealth.medicineFridgeTemp < 2}
-            >
-              <div style={{ padding: 16, borderRadius: 12, background: t.surface2, border: `1px solid ${t.border}`, marginBottom: 12 }}>
-                <div style={{ fontSize: 11, fontWeight: 600, color: t.textMuted, marginBottom: 8, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Medicine Fridge</div>
-                <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: 36, fontWeight: 900, color: t.text, letterSpacing: '-0.02em' }}>{inst.equipmentHealth.medicineFridgeTemp}°C</span>
-                  <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 6, background: t.dangerBg, color: t.danger }}>CRITICAL</span>
+            <div className={`${flexCardWidth} ${glassCardClass} p-8 relative overflow-hidden group`}>
+              <div className="absolute inset-0 opacity-20 group-hover:opacity-30 transition-opacity duration-500 pointer-events-none" style={{ backgroundImage: generateCircuitGrid(), backgroundSize: '100px 100px', transform: 'rotate(180deg)' }} />
+              <div className="relative z-10 flex flex-col h-full">
+                <div className="flex items-center justify-between mb-8">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center border border-white/30 backdrop-blur-md">
+                      <ThermometerSun size={24} className="text-emerald-700" />
+                    </div>
+                    <h3 className="text-lg font-black text-black tracking-tight">Cold Chain</h3>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <ReportBtn name="Cold Chain" />
+                    <button className="p-2 text-purple-950/60 hover:text-black transition-colors"><MoreHorizontal size={20} /></button>
+                  </div>
                 </div>
-                <div style={{ marginTop: 10, fontSize: 11, color: t.textMuted }}>Safe range: 2°C – 8°C</div>
+                <StatusPill isCritical={inst.equipmentHealth.medicineFridgeTemp > 8 || inst.equipmentHealth.medicineFridgeTemp < 2} text={inst.equipmentHealth.statusDesc} />
+                <div className="flex-grow flex flex-col justify-end mt-4">
+                  <div className="p-5 rounded-2xl bg-white/20 border border-white/40 backdrop-blur-md">
+                    <div className="text-xs font-bold tracking-widest uppercase text-purple-950/60 mb-2">Medicine Storage</div>
+                    <div className="flex items-end justify-between">
+                      <span className="text-3xl font-extrabold text-black">{inst.equipmentHealth.medicineFridgeTemp}°C</span>
+                      <span className="text-xs font-bold px-3 py-1 rounded-full bg-red-500/20 text-red-800 border border-red-500/30">CRITICAL</span>
+                    </div>
+                    <div className="mt-3 text-xs font-semibold text-purple-950/50">Safe threshold: 2°C – 8°C</div>
+                  </div>
+                </div>
               </div>
-            </DataCard>
+            </div>
           )}
-
         </div>
+
+        {/* ── ML FORECAST COMPONENT ── */}
+        <div className="mt-16">
+           <SolarForecast district={inst.district} centre={inst.name} />
+        </div>
+
       </div>
 
-      {/* ── FLOATING AI RECOMMENDATION BUTTON ── */}
+      {/* ── AI FLOATING BUTTON ── */}
       {inst && (
         <button
-          className="ai-fab"
+          className="fixed bottom-8 left-8 z-50 flex items-center gap-3 px-6 py-4 rounded-2xl border border-white/50 bg-white/30 backdrop-blur-xl shadow-[0_8px_32px_rgba(124,58,237,0.3)] hover:bg-white/50 hover:scale-105 hover:-translate-y-1 transition-all duration-300 group"
           onClick={() => navigate('/AIChat', { state: { institute: inst } })}
-          style={{
-            position: 'fixed',
-            bottom: 28,
-            left: 28,
-            zIndex: 90,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            padding: '13px 22px',
-            borderRadius: 16,
-            border: isDark ? '1px solid rgba(79,110,247,0.25)' : '1px solid rgba(79,110,247,0.15)',
-            cursor: 'pointer',
-            background: isDark
-              ? 'linear-gradient(135deg, #1e2a4a 0%, #1a1d27 100%)'
-              : 'linear-gradient(135deg, #4f6ef7 0%, #6d4ff7 100%)',
-            color: '#ffffff',
-            fontSize: 13,
-            fontWeight: 700,
-            letterSpacing: '0.02em',
-            animation: isDark ? 'fabGlowDark 3s ease-in-out infinite' : 'fabGlow 3s ease-in-out infinite',
-          }}
         >
-          {/* Pulsing dot */}
-          <span style={{ position: 'relative', display: 'inline-flex', flexShrink: 0, width: 8, height: 8 }}>
-            <span style={{
-              position: 'absolute', inset: 0, borderRadius: '50%',
-              background: isDark ? '#818cf8' : 'rgba(255,255,255,0.6)',
-              animation: 'ping 1.5s infinite'
-            }} />
-            <span style={{
-              width: 8, height: 8, borderRadius: '50%',
-              background: isDark ? '#818cf8' : '#ffffff',
-              display: 'block', position: 'relative'
-            }} />
+          <span className="relative flex w-3 h-3">
+            <span className="absolute inline-flex w-full h-full rounded-full opacity-75 bg-purple-600 animate-ping" />
+            <span className="relative inline-flex w-3 h-3 rounded-full bg-purple-700" />
           </span>
-
-          {/* Stars / sparkle icon */}
-          <svg
-            width="15" height="15" viewBox="0 0 24 24"
-            fill="none" stroke={isDark ? '#a5b4fc' : '#ffffff'}
-            strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-          >
-            <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" />
-            <path d="M20 3v4M22 5h-4" />
-          </svg>
-
-          <span style={{ color: isDark ? '#c7d2fe' : '#ffffff' }}>AI Recommendation</span>
-
-          {/* Arrow */}
-          <svg
-            width="13" height="13" viewBox="0 0 24 24"
-            fill="none" stroke={isDark ? '#818cf8' : '#ffffff'}
-            strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-            style={{ opacity: 0.7 }}
-          >
-            <path d="M5 12h14M12 5l7 7-7 7" />
-          </svg>
+          <span className="text-sm font-black tracking-wide text-purple-950 uppercase">AI Copilot</span>
         </button>
       )}
 
       {/* ── REPORT MODAL ── */}
       {isModalOpen && (
-        <div
-          onClick={() => setIsModalOpen(false)}
-          style={{
-            position: 'fixed', inset: 0, zIndex: 100,
-            background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(6px)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20
-          }}
-        >
-          <div
-            onClick={e => e.stopPropagation()}
-            style={{
-              background: t.surface, borderRadius: 20, padding: 28,
-              width: '100%', maxWidth: 480, boxShadow: t.shadowLg,
-              border: `1px solid ${t.border}`, animation: 'fadeIn 0.25s ease'
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
+        <div onClick={() => setIsModalOpen(false)} className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-purple-950/40 backdrop-blur-sm">
+          <div onClick={e => e.stopPropagation()} className="w-full max-w-lg p-8 rounded-[2rem] bg-white/40 backdrop-blur-2xl border border-white/50 shadow-2xl">
+            <div className="flex items-center justify-between mb-8">
               <div>
-                <div style={{ fontSize: 16, fontWeight: 800, color: t.text }}>Report Issue</div>
-                <div style={{ fontSize: 12, color: t.textMuted, marginTop: 3 }}>{reportComponent}</div>
+                <h3 className="text-2xl font-black text-black">Report Anomaly</h3>
+                <p className="text-sm font-bold text-purple-950/60 mt-1">{reportComponent} Module</p>
               </div>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                style={{ width: 32, height: 32, borderRadius: '50%', border: `1px solid ${t.border}`, background: 'none', cursor: 'pointer', color: t.textSec, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              >
-                <X size={15} />
+              <button onClick={() => setIsModalOpen(false)} className="p-2 rounded-full bg-white/40 hover:bg-white/60 text-black transition-colors">
+                <X size={20} />
               </button>
             </div>
-
             <form onSubmit={submitReport}>
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: t.textSec, marginBottom: 8, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                Description
-              </label>
-              <textarea
-                required
-                rows={4}
-                style={{
-                  width: '100%', padding: '12px 14px',
-                  border: `1px solid ${t.border}`, borderRadius: 12,
-                  background: t.surface2, color: t.text, fontSize: 13,
-                  resize: 'none', marginBottom: 18, transition: 'box-shadow 0.15s'
-                }}
-                placeholder="Describe the issue — failure, damage, anomaly..."
-                value={reportDescription}
-                onChange={e => setReportDescription(e.target.value)}
-              />
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                style={{
-                  width: '100%', padding: '13px',
-                  background: isSubmitting ? t.textMuted : t.accent,
-                  color: '#fff', border: 'none', borderRadius: 12,
-                  fontSize: 13, fontWeight: 700,
-                  cursor: isSubmitting ? 'not-allowed' : 'pointer',
-                  letterSpacing: '0.03em', transition: 'all 0.15s',
-                  boxShadow: isSubmitting ? 'none' : '0 4px 16px rgba(79,110,247,0.35)'
-                }}
-              >
-                {isSubmitting ? 'Submitting...' : 'Submit Official Report'}
+              <label className="block text-xs font-black tracking-widest uppercase text-purple-950/60 mb-3">Incident Details</label>
+              <textarea required rows={4} value={reportDescription} onChange={e => setReportDescription(e.target.value)} placeholder="Describe the hardware failure, damage, or metric anomaly..." className="w-full p-5 mb-6 rounded-2xl bg-white/30 border border-white/50 text-black font-medium placeholder-purple-950/30 focus:outline-none focus:ring-2 focus:ring-purple-500/50 resize-none" />
+              <button type="submit" disabled={isSubmitting} className="w-full py-4 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white text-sm font-black uppercase tracking-widest shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-[1.02] transition-all disabled:opacity-50 disabled:hover:scale-100">
+                {isSubmitting ? 'Transmitting...' : 'Submit Official Report'}
               </button>
             </form>
           </div>

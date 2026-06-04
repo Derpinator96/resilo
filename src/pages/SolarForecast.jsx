@@ -1,66 +1,26 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from '@clerk/clerk-react';
-import {
-    LineChart, Line, XAxis, YAxis,
-    CartesianGrid, Tooltip, ResponsiveContainer
-} from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
-//Energy calculation constants
-const SHADOWLESS_LAMP_HOURS = 2;   // hrs per delivery
-const BABY_WARMER_HOURS     = 6;   // hrs per delivery
+const SHADOWLESS_LAMP_HOURS = 2;
+const BABY_WARMER_HOURS = 6;
+const glassCardClass = "bg-white/25 backdrop-blur-2xl border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.15)] rounded-3xl transition-all duration-300 hover:bg-white/35 hover:border-white/70 hover:-translate-y-1"
 
-export default function SolarForecastPage() {
+export default function SolarForecast({ district, centre }) {
     const { getToken } = useAuth();
-    //Forecast state
-    const [district, setDistrict] = useState("");
-    const [centre,   setCentre]   = useState("");
-    const [result,   setResult]   = useState(null);
-    const [loading,  setLoading]  = useState(false);
-    const [error,    setError]    = useState("");
+    
+    const [result,  setResult]  = useState(null);
+    const [loading,  setLoading] = useState(false);
+    const [error,    setError]   = useState("");
 
-    //Delivery calculator state
     const [deliveries,    setDeliveries]    = useState("");
     const [equipment,     setEquipment]     = useState(null);
     const [eqLoading,     setEqLoading]     = useState(false);
     const [eqError,       setEqError]       = useState("");
     const [energyResult,  setEnergyResult]  = useState(null);
 
-    // Dynamic data
-    const [districts, setDistricts] = useState([]);
-    const [centres, setCentres] = useState([]);
-
-    useEffect(() => {
-        fetch('/api/districts')
-            .then(res => res.json())
-            .then(data => setDistricts(Array.isArray(data) ? data : []))
-            .catch(console.error);
-    }, []);
-
-    useEffect(() => {
-        if (district) {
-            fetch(`/api/institutes?district=${encodeURIComponent(district)}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (Array.isArray(data)) {
-                        setCentres(data.map(c => c.name));
-                    }
-                })
-                .catch(console.error);
-        } else {
-            setCentres([]);
-        }
-    }, [district]);
-
-    //Fetch solar forecast
     const fetchForecast = async () => {
-        if (!district || !centre) return;
-        setLoading(true);
-        setError("");
-        setResult(null);
-        setEquipment(null);
-        setEnergyResult(null);
-        setDeliveries("");
-
+        setLoading(true); setError(""); setResult(null); setEquipment(null); setEnergyResult(null); setDeliveries("");
         try {
             const token = await getToken();
             const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
@@ -72,30 +32,21 @@ export default function SolarForecastPage() {
             const data = await res.json();
             setResult(data);
 
-            // Also fetch equipment data for this centre in parallel
             setEqLoading(true);
             try {
                 const eqResp = await fetch(`/api/mlforecast/equipment?district=${encodeURIComponent(district)}&centreName=${encodeURIComponent(centre)}`, { headers });
                 if (eqResp.ok) {
                     const eqData = await eqResp.json();
                     setEquipment(eqData);
-                } else {
-                    setEqError("Could not fetch equipment data for this centre.");
-                }
+                } else setEqError("Could not fetch equipment data.");
             } catch (e) {
-                setEqError("Could not fetch equipment data for this centre.");
-            } finally {
-                setEqLoading(false);
-            }
-
+                setEqError("Could not fetch equipment data.");
+            } finally { setEqLoading(false); }
         } catch (e) {
             setError(e.message || "Failed to fetch forecast");
-        } finally {
-            setLoading(false);
-        }
+        } finally { setLoading(false); }
     };
 
-    //Calculate energy demand
     const calculateEnergy = () => {
         if (!deliveries || !equipment) return;
         const n = parseInt(deliveries);
@@ -104,395 +55,195 @@ export default function SolarForecastPage() {
         const lamp   = equipment.equipment?.shadowlessLamp;
         const warmer = equipment.equipment?.babyWarmer;
 
-        // Energy in kWh = (rating_W / 1000) * hours * deliveries
-        const lampEnergy   = lamp
-            ? (lamp.ratingOfLoad / 1000) * SHADOWLESS_LAMP_HOURS * n
-            : 0;
-        const warmerEnergy = warmer
-            ? (warmer.ratingOfLoad / 1000) * BABY_WARMER_HOURS * n
-            : 0;
+        const lampEnergy   = lamp ? (lamp.ratingOfLoad / 1000) * SHADOWLESS_LAMP_HOURS * n : 0;
+        const warmerEnergy = warmer ? (warmer.ratingOfLoad / 1000) * BABY_WARMER_HOURS * n : 0;
         const totalDemand  = lampEnergy + warmerEnergy;
 
         const solarGen     = result?.forecast?.estimated_generation_kwh || 0;
         const surplus      = solarGen - totalDemand;
         const sufficient   = surplus >= 0;
-        const coveragePct  = solarGen > 0
-            ? Math.min(100, Math.round((solarGen / totalDemand) * 100))
-            : 0;
+        const coveragePct  = solarGen > 0 ? Math.min(100, Math.round((solarGen / totalDemand) * 100)) : 0;
 
         setEnergyResult({
-            deliveries:    n,
-            lampEnergy:    Math.round(lampEnergy * 100) / 100,
-            warmerEnergy:  Math.round(warmerEnergy * 100) / 100,
-            totalDemand:   Math.round(totalDemand * 100) / 100,
-            solarGen:      Math.round(solarGen * 100) / 100,
-            surplus:       Math.round(Math.abs(surplus) * 100) / 100,
-            sufficient,
-            coveragePct,
-            lamp,
-            warmer
+            deliveries: n, lampEnergy: Math.round(lampEnergy * 100) / 100, warmerEnergy: Math.round(warmerEnergy * 100) / 100,
+            totalDemand: Math.round(totalDemand * 100) / 100, solarGen: Math.round(solarGen * 100) / 100,
+            surplus: Math.round(Math.abs(surplus) * 100) / 100, sufficient, coveragePct, lamp, warmer
         });
     };
 
+    if (!district || !centre) return null;
+
     return (
-        <div className="min-h-screen bg-slate-50 px-4 py-8 pb-32">
-            <div className="max-w-4xl mx-auto space-y-6 pt-16">
-
-                {/* Page Header */}
+        <div className="w-full space-y-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-800">
-                        Solar Irradiance Forecast
-                    </h1>
-                    <p className="text-sm text-slate-400 mt-1">
-                        ML-powered prediction · XGBoost · Live weather from Open-Meteo
-                    </p>
+                    <h2 className="text-3xl font-black text-black tracking-tight">AI Climate Intelligence</h2>
+                    <p className="text-sm font-bold text-purple-950/60 uppercase tracking-widest mt-2">XGBoost Engine · Live Open-Meteo Integration</p>
                 </div>
+            </div>
 
-                {/* Location Selector */}
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-                    <p className="text-sm font-semibold text-slate-600 mb-3">
-                        Select Location
+            {error && <div className="p-6 text-center text-red-900 bg-red-500/20 backdrop-blur-xl border border-red-500/40 rounded-3xl font-bold">{error}</div>}
+
+            {/* PRE-FETCH CTA STATE */}
+            {!result && !loading && !error && (
+                <div className={`${glassCardClass} p-16 flex flex-col items-center justify-center text-center`}>
+                    <div className="w-20 h-20 bg-gradient-to-tr from-purple-500/20 to-fuchsia-500/20 border border-white/50 text-purple-900 rounded-3xl flex items-center justify-center mb-6 backdrop-blur-md shadow-inner">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                        </svg>
+                    </div>
+                    <h3 className="text-3xl font-black text-black mb-3">Engine Ready</h3>
+                    <p className="text-base font-medium text-purple-950/70 mb-10 max-w-lg">
+                        Initialize the AI prediction matrix to fetch live environmental data and calculate renewable load capacities for {centre}.
                     </p>
-                    <div className="flex gap-3 flex-wrap">
-                        <select
-                            className="border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 flex-1 min-w-40"
-                            value={district}
-                            onChange={e => {
-                                setDistrict(e.target.value);
-                                setCentre("");
-                                setResult(null);
-                                setEquipment(null);
-                                setEnergyResult(null);
-                                setDeliveries("");
-                                setError("");
-                            }}
-                        >
-                            <option value="">Select District</option>
-                            {districts.map(d => (
-                                <option key={d} value={d}>{d}</option>
-                            ))}
-                        </select>
+                    <button onClick={fetchForecast} className="group relative inline-flex items-center gap-3 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white px-10 py-4 rounded-2xl font-black uppercase tracking-widest transition-all shadow-xl shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-105 active:scale-95">
+                        <svg className="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                        </svg>
+                        Predict Irradiance
+                    </button>
+                </div>
+            )}
 
-                        <select
-                            className="border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 flex-1 min-w-45"
-                            value={centre}
-                            onChange={e => setCentre(e.target.value)}
-                            disabled={!district}
-                        >
-                            <option value="">Select Centre</option>
-                            {centres.map(c => (
-                                <option key={c} value={c}>{c}</option>
-                            ))}
-                        </select>
+            {/* LOADING STATE */}
+            {loading && (
+                <div className={`${glassCardClass} p-20 flex flex-col items-center justify-center`}>
+                    <div className="w-16 h-16 border-4 border-white/30 border-t-purple-600 rounded-full animate-spin mb-6"></div>
+                    <p className="text-sm font-black uppercase tracking-widest text-purple-950/70 animate-pulse">Running XGBoost Model Matrix...</p>
+                </div>
+            )}
 
-                        <button
-                            onClick={fetchForecast}
-                            disabled={!centre || loading}
-                            className="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-medium disabled:opacity-40 hover:bg-blue-700 transition-colors"
-                        >
-                            {loading ? "Predicting…" : "Predict"}
-                        </button>
+            {/* RESULTS STATE */}
+            {result && !loading && (
+                <>
+                    {/* FORECAST CARDS */}
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+                        {[
+                            { label: 'Predicted GHI', value: result.forecast.predicted_ghi, unit: 'MJ/m²', grad: 'from-yellow-200/40 to-orange-200/40', text: 'text-orange-950' },
+                            { label: 'Est. Generation', value: result.forecast.estimated_generation_kwh, unit: 'kWh', grad: 'from-green-200/40 to-emerald-200/40', text: 'text-emerald-950' },
+                            { label: 'Solar Irradiance', value: result.forecast.predicted_kwh_m2, unit: 'kWh/m²', grad: 'from-blue-200/30 to-indigo-200/30', text: 'text-blue-950' },
+                            { label: 'Pred. Temp', value: result.forecast.predicted_temp || 35, unit: '°C', grad: 'from-red-200/40 to-pink-200/40', text: 'text-red-950' },
+                            { label: 'Pred. Humidity', value: result.forecast.predicted_humidity || 60, unit: '%', grad: 'from-cyan-200/40 to-blue-200/40', text: 'text-cyan-950' }
+                        ].map((c, i) => (
+                            <div key={i} className={`bg-white/25 backdrop-blur-xl border border-white/40 rounded-3xl p-6 relative overflow-hidden group shadow-[0_8px_32px_rgba(0,0,0,0.1)] transition-all hover:scale-105 hover:-translate-y-1`}>
+                                <div className={`absolute inset-0 bg-gradient-to-br ${c.grad} opacity-60 pointer-events-none`} />
+                                <div className="relative z-10">
+                                    <p className="text-xs font-bold uppercase tracking-wider text-purple-950/60 mb-3">{c.label}</p>
+                                    <p className={`text-3xl font-black ${c.text} tracking-tighter`}>
+                                        {c.value}
+                                        <span className="text-sm font-bold ml-1 opacity-70">{c.unit}</span>
+                                    </p>
+                                </div>
+                            </div>
+                        ))}
                     </div>
 
-                    {error && (
-                        <p className="text-red-500 text-sm mt-3">{error}</p>
-                    )}
-                </div>
+                    {/* HISTORY CHART */}
+                    <div className={`${glassCardClass} p-8`}>
+                        <h3 className="text-lg font-black text-black tracking-tight mb-1">7-Day Irradiance Analysis</h3>
+                        <p className="text-xs font-bold uppercase tracking-widest text-purple-950/50 mb-8">Historical baseline (MJ/m²)</p>
+                        <ResponsiveContainer width="100%" height={260}>
+                            <LineChart data={result.forecast.history} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.2)" />
+                                <XAxis dataKey="date" tick={{ fontSize: 12, fill: '#4c1d95', fontWeight: 600 }} tickFormatter={d => d.slice(5)} stroke="rgba(255,255,255,0.4)" />
+                                <YAxis tick={{ fontSize: 12, fill: '#4c1d95', fontWeight: 600 }} stroke="rgba(255,255,255,0.4)" />
+                                <Tooltip contentStyle={{ backgroundColor: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(10px)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.5)', fontWeight: 'bold', color: '#000' }} formatter={v => [`${v} MJ/m²`, "GHI"]} labelFormatter={l => `Date: ${l}`} />
+                                <Line type="monotone" dataKey="ghi" stroke="#8b5cf6" strokeWidth={4} dot={{ r: 6, fill: '#fff', stroke: '#8b5cf6', strokeWidth: 2 }} activeDot={{ r: 8, fill: '#ec4899', stroke: '#fff' }} />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    </div>
 
-                {/* Forecast Results */}
-                {result && (
-                    <>
-                        {/* KPI Cards */}
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <div className="bg-amber-50 rounded-xl p-5 border border-amber-100">
-                                <p className="text-xs text-amber-700 font-semibold uppercase tracking-wide">
-                                    Predicted GHI
-                                </p>
-                                <p className="text-3xl font-extrabold text-amber-800 mt-2">
-                                    {result.forecast.predicted_ghi}
-                                    <span className="text-sm font-semibold ml-1">MJ/m²</span>
-                                </p>
-                                <p className="text-xs text-amber-600 mt-1">
-                                    for {result.forecast.for_date}
-                                </p>
-                            </div>
-
-                            <div className="bg-green-50 rounded-xl p-5 border border-green-100">
-                                <p className="text-xs text-green-700 font-semibold uppercase tracking-wide">
-                                    Est. Generation
-                                </p>
-                                <p className="text-3xl font-extrabold text-green-800 mt-2">
-                                    {result.forecast.estimated_generation_kwh}
-                                    <span className="text-sm font-semibold ml-1">kWh</span>
-                                </p>
-                                <p className="text-xs text-green-600 mt-1">
-                                    {result.forecast.pv_capacity_kwp} kWp installed
-                                </p>
-                            </div>
-
-                            <div className="bg-blue-50 rounded-xl p-5 border border-blue-100">
-                                <p className="text-xs text-blue-700 font-semibold uppercase tracking-wide">
-                                    Solar Irradiance
-                                </p>
-                                <p className="text-3xl font-extrabold text-blue-800 mt-2">
-                                    {result.forecast.predicted_kwh_m2}
-                                    <span className="text-sm font-semibold ml-1">kWh/m²</span>
-                                </p>
-                                <p className="text-xs text-blue-600 mt-1">
-                                    {result.centre.name} · {result.centre.district}
-                                </p>
-                            </div>
+                    {/* DELIVERY ENERGY CALCULATOR */}
+                    <div className={`${glassCardClass} p-8`}>
+                        <div className="mb-8">
+                            <h3 className="text-xl font-black text-black tracking-tight mb-1">Grid Defection Planner</h3>
+                            <p className="text-xs font-bold uppercase tracking-widest text-purple-950/50">Determine exact operational capacity based on tomorrow's solar yield</p>
                         </div>
-
-                        {/* 7-day History Chart */}
-                        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-                            <p className="text-sm font-semibold text-slate-700 mb-1">
-                                Last 7 Days GHI
-                            </p>
-                            <p className="text-xs text-slate-400 mb-4">
-                                Historical solar irradiance used as model input (MJ/m²)
-                            </p>
-                            <ResponsiveContainer width="100%" height={200}>
-                                <LineChart
-                                    data={result.forecast.history}
-                                    margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
-                                >
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                                    <XAxis
-                                        dataKey="date"
-                                        tick={{ fontSize: 11 }}
-                                        tickFormatter={d => d.slice(5)}
-                                    />
-                                    <YAxis tick={{ fontSize: 11 }} />
-                                    <Tooltip
-                                        formatter={v => [`${v} MJ/m²`, "GHI"]}
-                                        labelFormatter={l => `Date: ${l}`}
-                                    />
-                                    <Line
-                                        type="monotone"
-                                        dataKey="ghi"
-                                        stroke="#3b82f6"
-                                        strokeWidth={2}
-                                        dot={{ r: 4 }}
-                                        activeDot={{ r: 6 }}
-                                    />
-                                </LineChart>
-                            </ResponsiveContainer>
-                        </div>
-                    </>
-                )}
-
-                {/* Delivery Energy Calculator */}
-                {result && (
-                    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-
-                        {/* Section header */}
-                        <div className="flex items-center gap-2 mb-1">
-                            <h2 className="text-base font-bold text-slate-800">
-                                Tomorrow's Delivery Energy Planner
-                            </h2>
-                        </div>
-                        <p className="text-xs text-slate-400 mb-5">
-                            Enter planned deliveries to check if tomorrow's solar generation covers the critical load demand
-                        </p>
-
-                        {eqLoading && (
-                            <p className="text-sm text-slate-400">Loading equipment data…</p>
-                        )}
-
-                        {eqError && (
-                            <p className="text-sm text-red-500">{eqError}</p>
-                        )}
+                        
+                        {eqLoading && <p className="text-sm font-bold text-purple-950/50 animate-pulse">Syncing hardware logs…</p>}
+                        {eqError && <p className="text-sm font-bold text-red-600">{eqError}</p>}
 
                         {equipment && !eqLoading && (
                             <>
-                                {/* Equipment summary */}
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
-                                    {/* Shadowless Lamp */}
-                                    <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
-                                        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-                                             Shadowless Lamp
-                                        </p>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-8">
+                                    <div className="bg-white/20 border border-white/40 rounded-2xl p-5 backdrop-blur-md">
+                                        <p className="text-xs font-black uppercase tracking-widest text-purple-950/50 mb-3">Shadowless Lamp</p>
                                         {equipment.equipment?.shadowlessLamp ? (
-                                            <div className="space-y-1">
-                                                <p className="text-sm text-slate-700 capitalize">
-                                                    {equipment.equipment.shadowlessLamp.typeOfLoad}
-                                                </p>
-                                                <p className="text-xl font-bold text-slate-800">
-                                                    {equipment.equipment.shadowlessLamp.ratingOfLoad}
-                                                    <span className="text-sm font-normal ml-1">W</span>
-                                                </p>
-                                                <p className="text-xs text-slate-400">
-                                                    {equipment.equipment.shadowlessLamp.numberOfLoad} unit(s) ·{" "}
-                                                    {SHADOWLESS_LAMP_HOURS} hrs/delivery
-                                                </p>
+                                            <div>
+                                                <p className="text-3xl font-black text-black">{equipment.equipment.shadowlessLamp.ratingOfLoad}<span className="text-sm ml-1">W</span></p>
                                             </div>
-                                        ) : (
-                                            <p className="text-sm text-slate-400 italic">Not found in centre data</p>
-                                        )}
+                                        ) : (<p className="text-sm font-bold text-purple-950/30 italic">Unregistered</p>)}
                                     </div>
-
-                                    {/* Baby Warmer */}
-                                    <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
-                                        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-                                             Baby Warmer
-                                        </p>
+                                    <div className="bg-white/20 border border-white/40 rounded-2xl p-5 backdrop-blur-md">
+                                        <p className="text-xs font-black uppercase tracking-widest text-purple-950/50 mb-3">Baby Warmer</p>
                                         {equipment.equipment?.babyWarmer ? (
-                                            <div className="space-y-1">
-                                                <p className="text-sm text-slate-700 capitalize">
-                                                    {equipment.equipment.babyWarmer.typeOfLoad}
-                                                </p>
-                                                <p className="text-xl font-bold text-slate-800">
-                                                    {equipment.equipment.babyWarmer.ratingOfLoad}
-                                                    <span className="text-sm font-normal ml-1">W</span>
-                                                </p>
-                                                <p className="text-xs text-slate-400">
-                                                    {equipment.equipment.babyWarmer.numberOfLoad} unit(s) ·{" "}
-                                                    {BABY_WARMER_HOURS} hrs/delivery
-                                                </p>
+                                            <div>
+                                                <p className="text-3xl font-black text-black">{equipment.equipment.babyWarmer.ratingOfLoad}<span className="text-sm ml-1">W</span></p>
                                             </div>
-                                        ) : (
-                                            <p className="text-sm text-slate-400 italic">Not found in centre data</p>
-                                        )}
+                                        ) : (<p className="text-sm font-bold text-purple-950/30 italic">Unregistered</p>)}
                                     </div>
                                 </div>
 
-                                {/* Deliveries input */}
-                                <div className="flex gap-3 items-end mb-5">
-                                    <div className="flex-1">
-                                        <label className="block text-sm font-semibold text-slate-600 mb-1">
-                                            Planned Deliveries Tomorrow
-                                        </label>
+                                <div className="flex flex-col sm:flex-row gap-4 items-end mb-10">
+                                    <div className="flex-1 w-full">
+                                        <label className="block text-xs font-black uppercase tracking-widest text-purple-950/70 mb-2">Target Operations (Deliveries)</label>
                                         <input
-                                            type="number"
-                                            min="1"
-                                            placeholder="Enter number of deliveries"
+                                            type="number" min="1"
+                                            placeholder="Input delivery volume..."
                                             value={deliveries}
-                                            onChange={e => {
-                                                setDeliveries(e.target.value);
-                                                setEnergyResult(null);
-                                            }}
-                                            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400"
+                                            onChange={e => { setDeliveries(e.target.value); setEnergyResult(null); }}
+                                            className="w-full bg-white/40 border border-white/50 backdrop-blur-md rounded-2xl px-5 py-4 text-black font-black placeholder-purple-950/30 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all"
                                         />
                                     </div>
                                     <button
                                         onClick={calculateEnergy}
                                         disabled={!deliveries || parseInt(deliveries) <= 0}
-                                        className="bg-indigo-600 text-white px-5 py-2 rounded-lg text-sm font-medium disabled:opacity-40 hover:bg-indigo-700 transition-colors"
-                                    >
-                                        Calculate
-                                    </button>
+                                        className="w-full sm:w-auto bg-black text-white px-8 py-4 rounded-2xl text-sm font-black uppercase tracking-widest disabled:opacity-30 hover:scale-105 active:scale-95 transition-all shadow-xl shadow-black/20"
+                                    >Compute</button>
                                 </div>
 
-                                {/* Energy breakdown & verdict */}
                                 {energyResult && (
-                                    <div className="space-y-4">
-
-                                        {/* Breakdown */}
-                                        <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
-                                            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
-                                                Energy Breakdown for {energyResult.deliveries} Deliveries
-                                            </p>
-                                            <div className="space-y-2">
-                                                {energyResult.lamp && (
-                                                    <div className="flex justify-between text-sm">
-                                                        <span className="text-slate-600">
-                                                             Shadowless Lamp
-                                                            <span className="text-slate-400 text-xs ml-1">
-                                                                ({energyResult.lamp.ratingOfLoad}W × {SHADOWLESS_LAMP_HOURS}h × {energyResult.deliveries})
-                                                            </span>
-                                                        </span>
-                                                        <span className="font-semibold text-slate-800">
-                                                            {energyResult.lampEnergy} kWh
-                                                        </span>
-                                                    </div>
-                                                )}
-                                                {energyResult.warmer && (
-                                                    <div className="flex justify-between text-sm">
-                                                        <span className="text-slate-600">
-                                                             Baby Warmer
-                                                            <span className="text-slate-400 text-xs ml-1">
-                                                                ({energyResult.warmer.ratingOfLoad}W × {BABY_WARMER_HOURS}h × {energyResult.deliveries})
-                                                            </span>
-                                                        </span>
-                                                        <span className="font-semibold text-slate-800">
-                                                            {energyResult.warmerEnergy} kWh
-                                                        </span>
-                                                    </div>
-                                                )}
-                                                <div className="border-t border-slate-200 pt-2 flex justify-between text-sm font-bold">
-                                                    <span className="text-slate-700">Total Demand</span>
-                                                    <span className="text-slate-900">{energyResult.totalDemand} kWh</span>
-                                                </div>
-                                                <div className="flex justify-between text-sm">
-                                                    <span className="text-slate-600"> Solar Generation (predicted)</span>
-                                                    <span className="font-semibold text-green-700">{energyResult.solarGen} kWh</span>
-                                                </div>
+                                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                        <div className="bg-white/20 border border-white/40 rounded-3xl p-6 backdrop-blur-md">
+                                            <div className="flex justify-between items-center py-3 border-b border-white/30 text-base font-black">
+                                                <span className="text-purple-950/70">Required Demand</span>
+                                                <span className="text-black text-xl">{energyResult.totalDemand} kWh</span>
+                                            </div>
+                                            <div className="flex justify-between items-center py-3 text-base font-black">
+                                                <span className="text-purple-950/70">Predicted Yield</span>
+                                                <span className="text-emerald-700 text-xl">{energyResult.solarGen} kWh</span>
                                             </div>
                                         </div>
 
-                                        {/* Progress bar */}
-                                        <div>
-                                            <div className="flex justify-between text-xs text-slate-500 mb-1">
-                                                <span>Solar coverage</span>
-                                                <span>{energyResult.coveragePct}%</span>
-                                            </div>
-                                            <div className="w-full bg-slate-100 rounded-full h-3">
-                                                <div
-                                                    className={`h-3 rounded-full transition-all duration-500 ${
-                                                        energyResult.sufficient
-                                                            ? "bg-green-500"
-                                                            : energyResult.coveragePct >= 70
-                                                                ? "bg-amber-400"
-                                                                : "bg-red-500"
-                                                    }`}
-                                                    style={{ width: `${energyResult.coveragePct}%` }}
-                                                />
-                                            </div>
+                                        <div className="bg-white/30 rounded-full h-4 overflow-hidden border border-white/50">
+                                            <div
+                                                className={`h-full transition-all duration-1000 ${energyResult.sufficient ? "bg-gradient-to-r from-emerald-400 to-green-500" : energyResult.coveragePct >= 70 ? "bg-gradient-to-r from-amber-400 to-orange-500" : "bg-gradient-to-r from-red-400 to-rose-500"}`}
+                                                style={{ width: `${energyResult.coveragePct}%` }}
+                                            />
                                         </div>
 
-                                        {/* Verdict */}
-                                        <div className={`rounded-xl p-5 border ${
-                                            energyResult.sufficient
-                                                ? "bg-green-50 border-green-200"
-                                                : "bg-red-50 border-red-200"
-                                        }`}>
-                                            <div className="flex items-start gap-3">
-                                                <span className="text-2xl">
-                                                    {energyResult.sufficient ? "✅" : "⚠️"}
-                                                </span>
+                                        <div className={`rounded-3xl p-6 border backdrop-blur-xl ${energyResult.sufficient ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-900" : "bg-red-500/10 border-red-500/30 text-red-900"}`}>
+                                            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left">
+                                                <div className={`flex items-center justify-center w-12 h-12 rounded-2xl ${energyResult.sufficient ? 'bg-emerald-500/20' : 'bg-red-500/20'} shrink-0`}>
+                                                    <span className="text-2xl">{energyResult.sufficient ? "✓" : "!"}</span>
+                                                </div>
                                                 <div>
-                                                    <p className={`font-bold text-base ${
-                                                        energyResult.sufficient
-                                                            ? "text-green-800"
-                                                            : "text-red-800"
-                                                    }`}>
-                                                        {energyResult.sufficient
-                                                            ? "Solar generation is sufficient"
-                                                            : "Solar generation is insufficient"}
+                                                    <p className="font-black text-lg sm:text-xl tracking-tight mb-1">
+                                                        {energyResult.sufficient ? "System Optimal: Zero Grid Reliance" : "Warning: Capacity Deficit Detected"}
                                                     </p>
-                                                    <p className={`text-sm mt-1 ${
-                                                        energyResult.sufficient
-                                                            ? "text-green-700"
-                                                            : "text-red-700"
-                                                    }`}>
-                                                        {energyResult.sufficient
-                                                            ? `${energyResult.surplus} kWh surplus available after covering ${energyResult.deliveries} delivery${energyResult.deliveries > 1 ? "s" : ""}.`
-                                                            : `${Math.abs(energyResult.surplus)} kWh shortfall for ${energyResult.deliveries} delivery${energyResult.deliveries > 1 ? "s" : ""}. Grid backup or load scheduling recommended.`
-                                                        }
+                                                    <p className="text-sm font-bold opacity-80">
+                                                        {energyResult.sufficient ? `Estimated ${energyResult.surplus} kWh surplus margin after operational load.` : `Critical ${Math.abs(energyResult.surplus)} kWh shortfall. Backup grid initialization required.`}
                                                     </p>
                                                 </div>
                                             </div>
                                         </div>
-
                                     </div>
                                 )}
                             </>
                         )}
                     </div>
-                )}
-
-            </div>
+                </>
+            )}
         </div>
     );
 }

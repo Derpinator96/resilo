@@ -1,6 +1,8 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
+console.log(import.meta.env);
+console.log(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
 import { ClerkProvider } from '@clerk/clerk-react'
 import './index.css'
 import App from './App.jsx'

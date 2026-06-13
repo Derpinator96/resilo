@@ -81,7 +81,7 @@ npm run build
 The resulting `/dist` folder can be hosted on any static hosting platform (Vercel, Netlify, AWS S3) alongside the Node/Express backend container.
 
 ## Live Demo
-https://resilo.app
+https://resilo-ten.vercel.app
 
 ## API Documentation
-https://resilo.app/api-docs
+https://resilo-ten.vercel.app/api-docs

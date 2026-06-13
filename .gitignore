@@ -1,26 +1,78 @@
+# Dependency Directories
+node_modules/
+server/node_modules/
+
+# Local Environment / Credentials (CRITICAL for security)
 .env
 .env.local
 .env.*.local
 server/.env
-node_modules/
-dist/
-*-log.txt
-*-err.txt
-public/*
-unicef/*
 
-# Subagents & Local Skills
+# Build Outputs
+dist/
+build/
+
+# IDE / Editor Files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+
+# Subagents & Local Agentic Skills
 .agents/
 skills-lock.json
 
-# Python cache files
+# Python Cache & Virtual Environments
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+.env/
+.venv/
+Machine Learning/__pycache__/
+Machine Learning/venv/
+Machine Learning/.venv/
 
-# Local log files & temp scripts
+# Build/Lint Logs & Diagnostics
+*-log.txt
+*-err.txt
+build-log.txt
+eslint-err.txt
+frontend-log.txt
 server/backend-log*.txt
-server/error.html
-server/test.js
+eslint.json
+
+# Temporary/Diagnostic Scripts (Local development only)
+clean-colors.cjs
+fix-auth.cjs
+fix-colors.cjs
+fix-dynamic.cjs
+fix-inst-detail.py
+fix-visuals.cjs
 inspect_db.js
 strip_water.cjs
-upload_cloudinary.cjs
+upload_cloudinary.cjs
+server/inspect_all_dbs.js
+server/inspect_collections.js
+server/inspect_db.js
+server/test-mongo.js
+server/test.js
+server/error.html
+
+# Duplicate/Backup Folders
+unicef/
+
+# Large Local Media Assets (Not suitable for GitHub)
+public/media/*.mp4
+public/media/*.jpg
+public/media/*.jpeg
+# Note: Keeping compact_logo.svg, primary_logo.svg, and landing_page.html tracked
+

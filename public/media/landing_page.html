@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>RESILO - Solar Infrastructure</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "surface-container-low": "#eff5f4",
+                "tertiary": "#7a5500",
+                "secondary-container": "#d6e976",
+                "on-error": "#ffffff",
+                "surface": "#f5fafa",
+                "inverse-primary": "#ffb59b",
+                "error": "#ba1a1a",
+                "inverse-on-surface": "#ecf2f1",
+                "surface-container": "#e9efee",
+                "primary-container": "#ce4602",
+                "on-secondary-fixed-variant": "#414c00",
+                "on-tertiary": "#ffffff",
+                "primary-fixed": "#ffdbcf",
+                "outline": "#8e7167",
+                "frame-charcoal": "#1C1C1C",
+                "error-container": "#ffdad6",
+                "tertiary-container": "#996c00",
+                "on-secondary-fixed": "#191e00",
+                "on-surface-variant": "#5a4139",
+                "text-dark": "#1A2020",
+                "on-tertiary-fixed": "#271900",
+                "on-secondary-container": "#5b6900",
+                "secondary": "#576500",
+                "on-tertiary-container": "#fffbff",
+                "on-primary-fixed-variant": "#812800",
+                "surface-container-lowest": "#ffffff",
+                "secondary-fixed": "#d9ec78",
+                "surface-container-highest": "#dee4e3",
+                "surface-variant": "#dee4e3",
+                "surface-dim": "#d5dbdb",
+                "secondary-fixed-dim": "#bdd05f",
+                "on-primary-container": "#fffbff",
+                "bg-mint": "#E8EFE4",
+                "on-primary-fixed": "#380d00",
+                "surface-container-high": "#e3e9e9",
+                "outline-variant": "#e2bfb4",
+                "on-primary": "#ffffff",
+                "primary-fixed-dim": "#ffb59b",
+                "surface-bright": "#f5fafa",
+                "primary": "#a53600",
+                "on-background": "#171d1d",
+                "on-tertiary-fixed-variant": "#5e4100",
+                "on-secondary": "#ffffff",
+                "background": "#f5fafa",
+                "tertiary-fixed-dim": "#f9bc47",
+                "surface-tint": "#a93700",
+                "on-error-container": "#93000a",
+                "inverse-surface": "#2b3231",
+                "tertiary-fixed": "#ffdea9",
+                "on-surface": "#171d1d",
+                "section-forest": "#1A3028",
+                "brand-accent": "#E8581A",
+                "amber": "#F5B944"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px",
+                "card": "24px",
+                "wrapper": "24px"
+        },
+        "spacing": {
+                "section-gap": "120px",
+                "gutter": "24px",
+                "frame-thickness": "24px",
+                "margin-mobile": "16px",
+                "margin-desktop": "64px"
+        },
+        "fontFamily": {
+                "headline-md": [
+                        "DM Sans"
+                ],
+                "body-lg": [
+                        "DM Sans"
+                ],
+                "headline-lg": [
+                        "DM Sans"
+                ],
+                "display-stat": [
+                        "DM Sans"
+                ],
+                "eyebrow": [
+                        "DM Sans"
+                ],
+                "label-md": [
+                        "DM Sans"
+                ],
+                "body-md": [
+                        "DM Sans"
+                ]
+        },
+        "fontSize": {
+                "headline-md": [
+                        "36px",
+                        {
+                                "lineHeight": "1.2",
+                                "fontWeight": "500"
+                        }
+                ],
+                "body-lg": [
+                        "18px",
+                        {
+                                "lineHeight": "1.6",
+                                "fontWeight": "400"
+                        }
+                ],
+                "headline-lg": [
+                        "52px",
+                        {
+                                "lineHeight": "1.1",
+                                "fontWeight": "500"
+                        }
+                ],
+                "display-stat": [
+                        "110px",
+                        {
+                                "lineHeight": "110px",
+                                "letterSpacing": "-0.02em",
+                                "fontWeight": "200"
+                        }
+                ],
+                "eyebrow": [
+                        "11px",
+                        {
+                                "lineHeight": "16px",
+                                "letterSpacing": "0.15em",
+                                "fontWeight": "700"
+                        }
+                ],
+                "label-md": [
+                        "14px",
+                        {
+                                "lineHeight": "20px",
+                                "fontWeight": "500"
+                        }
+                ],
+                "body-md": [
+                        "16px",
+                        {
+                                "lineHeight": "1.6",
+                                "fontWeight": "400"
+                        }
+                ]
+        }
+},
+    },
+  }
+</script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .text-outline-thin {
+            -webkit-text-stroke: 1px currentColor;
+            color: transparent;
+        }
+        .bg-stripes-pattern {
+            background-image: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 10%,
+                rgba(255, 255, 255, 0.4) 10%,
+                rgba(255, 255, 255, 0.4) 15%,
+                transparent 15%,
+                transparent 30%,
+                rgba(255, 255, 255, 0.6) 30%,
+                rgba(255, 255, 255, 0.6) 38%,
+                transparent 38%,
+                transparent 55%,
+                rgba(255, 255, 255, 0.3) 55%,
+                rgba(255, 255, 255, 0.3) 58%,
+                transparent 58%,
+                transparent 75%,
+                rgba(255, 255, 255, 0.5) 75%,
+                rgba(255, 255, 255, 0.5) 85%,
+                transparent 85%
+            );
+        }
+    </style>
+</head>
+<body class="bg-frame-charcoal p-3 min-h-screen text-on-surface antialiased font-body-md selection:bg-secondary-fixed selection:text-frame-charcoal">
+<!-- Page Frame Window -->
+<div class="bg-section-forest min-h-[calc(100vh-24px)] rounded-wrapper overflow-hidden relative shadow-2xl flex flex-col">
+<!-- TopNavBar (Shared Component) -->
+<nav class="fixed top-6 left-0 right-0 z-50 flex justify-between items-center px-gutter w-full md:px-margin-desktop pointer-events-none">
+<div class="flex items-center gap-6 pointer-events-auto">
+<!-- Brand -->
+<div class="font-headline-md text-[32px] font-bold text-white flex items-center gap-1 tracking-tight">
+                    RESILO<span class="text-brand-accent">3</span>
+</div>
+</div>
+<!-- Navigation Links (Web) -->
+<div class="hidden md:flex items-center gap-8 bg-surface-container-lowest/80 backdrop-blur-md rounded-full px-8 py-3 pointer-events-auto shadow-sm border border-white/20">
+<a class="font-label-md text-label-md capitalize tracking-wide text-text-dark font-medium py-1" href="#">Home</a>
+<a class="font-label-md text-label-md capitalize tracking-wide text-text-dark/70 font-normal hover:text-text-dark transition-colors duration-200 py-1" href="#">Features</a>
+<a class="font-label-md text-label-md capitalize tracking-wide text-text-dark/70 font-normal hover:text-text-dark transition-colors duration-200 py-1" href="#">Audits</a>
+<a class="font-label-md text-label-md capitalize tracking-wide text-text-dark/70 font-normal hover:text-text-dark transition-colors duration-200 py-1" href="#">About</a>
+</div>
+<!-- Trailing Actions -->
+<div class="flex items-center gap-4 pointer-events-auto">
+<a class="hidden md:flex bg-surface-container-lowest text-text-dark rounded-full pl-6 pr-2 py-2 items-center gap-4 shadow-sm hover:scale-95 transition-transform" href="#">
+<span class="font-label-md text-label-md capitalize tracking-wide">Contact Us</span>
+<div class="w-6 h-6 rounded-full bg-brand-accent"></div>
+</a>
+<button class="w-12 h-12 rounded-full bg-surface-container-lowest flex items-center justify-center hover:bg-surface-container-high transition-colors shadow-sm">
+<span class="material-symbols-outlined text-text-dark">menu</span>
+</button>
+</div>
+</nav>
+<!-- 1. HERO -->
+<section class="relative min-h-[90vh] flex flex-col justify-center px-margin-mobile md:px-margin-desktop bg-section-forest">
+<div class="relative z-10 max-w-4xl pt-32">
+<div class="inline-flex items-center gap-2 mb-8 border-b border-dotted border-secondary-fixed/50 pb-2">
+<span class="font-eyebrow text-eyebrow text-secondary-fixed uppercase">CLIMATATHON 2026 WINNER · NIT RAIPUR</span>
+</div>
+<h1 class="text-[64px] md:text-[96px] text-white leading-[1.1] mb-10 tracking-tight font-light">
+                    Solar Infrastructure <br/>
+                    That Never Goes Dark
+                </h1>
+<a class="inline-flex bg-secondary-fixed text-on-secondary-fixed rounded-full pl-8 pr-2 py-3 items-center gap-6 hover:opacity-90 transition-opacity w-max" href="#">
+<span class="font-label-md text-label-md uppercase tracking-wider font-bold">Explore Resilo</span>
+<div class="w-8 h-8 rounded-full bg-frame-charcoal"></div>
+</a>
+</div>
+<!-- Vertical scroll line -->
+<div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-px h-32 bg-white/30"></div>
+</section>
+<!-- 2. STAT BENTO & MISSION -->
+<div class="bg-bg-mint relative rounded-t-[48px] overflow-hidden">
+<!-- Layered Background Strips -->
+<div class="absolute inset-0 z-0 bg-stripes-pattern pointer-events-none opacity-60"></div>
+<!-- STAT BENTO -->
+<section class="py-section-gap px-margin-mobile md:px-margin-desktop relative z-10">
+<div class="grid grid-cols-1 md:grid-cols-12 gap-8 max-w-7xl mx-auto">
+<!-- Top Left: Icon -->
+<div class="bg-text-dark rounded-[32px] p-12 flex items-center justify-center min-h-[400px] md:col-span-5 transform md:translate-y-8 shadow-xl">
+<svg fill="none" height="120" stroke="#C9DC6A" stroke-linecap="round" stroke-linejoin="round" stroke-width="1" viewbox="0 0 24 24" width="120">
+<rect height="18" rx="2" ry="2" width="18" x="3" y="3"></rect>
+<line x1="3" x2="21" y1="9" y2="9"></line>
+<line x1="3" x2="21" y1="15" y2="15"></line>
+<line x1="9" x2="9" y1="3" y2="21"></line>
+<line x1="15" x2="15" y1="3" y2="21"></line>
+<path d="M12 8v4l3 3" stroke="#F5B944" stroke-width="2"></path>
+</svg>
+</div>
+<!-- Top Right: Lime Stat -->
+<div class="bg-secondary-fixed rounded-[32px] p-12 flex flex-col justify-between min-h-[400px] md:col-span-7 transform md:-translate-y-6 shadow-xl relative z-20">
+<div class="border-b border-dotted border-frame-charcoal/40 pb-3 mb-6">
+<span class="font-eyebrow text-eyebrow text-frame-charcoal uppercase tracking-widest font-bold">PENDING AUDITS</span>
+</div>
+<div>
+<div class="font-display-stat text-[180px] md:text-[220px] text-outline-thin text-frame-charcoal mb-4 font-extralight leading-[0.8] tracking-tighter">34</div>
+<p class="font-body-md text-body-md text-frame-charcoal/80 max-w-md mt-8">
+                                Critical facilities currently lack digital twin integration, leaving significant gaps in predictive maintenance coverage.
+                            </p>
+</div>
+</div>
+<!-- Bottom Left: Amber Stat -->
+<div class="bg-amber rounded-[32px] p-12 flex flex-col justify-between min-h-[400px] md:col-span-7 transform md:-translate-y-12 md:-translate-x-4 shadow-xl relative z-30">
+<div class="border-b border-dotted border-frame-charcoal/40 pb-3 mb-6">
+<span class="font-eyebrow text-eyebrow text-frame-charcoal uppercase tracking-widest font-bold">MEAN TIME TO REPAIR</span>
+</div>
+<div>
+<div class="font-display-stat text-[160px] md:text-[200px] leading-[0.8] tracking-tighter font-extralight text-outline-thin text-frame-charcoal mb-4">1-2<span class="text-[80px] align-baseline">mo</span></div>
+<p class="font-body-md text-body-md text-frame-charcoal/80 max-w-md mt-8">
+                                Current resolution timelines without active fault visibility and automated dispatch systems.
+                            </p>
+</div>
+</div>
+<!-- Bottom Right: Icon -->
+<div class="bg-text-dark rounded-[32px] p-12 flex items-center justify-center min-h-[400px] md:col-span-5 transform md:translate-y-4 shadow-xl">
+<svg fill="none" height="120" stroke="#F5B944" stroke-linecap="round" stroke-linejoin="round" stroke-width="1" viewbox="0 0 24 24" width="120">
+<path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+<path d="M12 3v18" stroke="#C9DC6A" stroke-width="4"></path>
+<circle cx="12" cy="12" r="10" stroke="#C9DC6A" stroke-dasharray="4 4"></circle>
+</svg>
+</div>
+</div>
+</section>
+<!-- 3. MISSION SECTION -->
+<section class="py-section-gap px-margin-mobile md:px-margin-desktop relative z-10 pt-0">
+<div class="max-w-7xl mx-auto flex flex-col md:flex-row gap-16 mb-24 items-start">
+<div class="md:w-5/12">
+<h2 class="text-[48px] md:text-[56px] leading-[1.1] font-light text-text-dark tracking-tight">Turn up demand. Don't turn down generation.</h2>
+</div>
+<div class="md:w-7/12 space-y-8 mt-4 md:mt-0 md:pl-12">
+<p class="text-[20px] leading-relaxed text-text-dark/80 font-light">By converting renewable electricity from the grid into thermal energy, our flexible asset can supply industry with ultra-high temperature, low-carbon heat, utilising energy that would otherwise be wasted.</p>
+<p class="text-[20px] leading-relaxed text-text-dark/80 font-light">Our technology contains nearly 100 patent pending inventions enabling us to provide a modular, compact and easy to install decarbonisation solution for a range of clients, from SMEs to large industry.</p>
+</div>
+</div>
+<div class="bg-section-forest rounded-[40px] p-12 md:p-20 relative overflow-hidden flex flex-col justify-between min-h-[600px] shadow-2xl z-20">
+<div class="absolute top-8 right-8 z-20">
+<a class="inline-flex bg-secondary-fixed text-text-dark rounded-full pl-6 pr-2 py-2 items-center gap-4 hover:opacity-90 transition-opacity w-max shadow-sm" href="#">
+<span class="font-label-md text-[15px] tracking-wide font-normal">Find out more</span>
+<div class="w-7 h-7 rounded-full bg-frame-charcoal"></div>
+</a>
+</div>
+<div class="flex flex-col md:flex-row items-center justify-between h-full gap-8 mt-12 z-10 relative">
+<div class="text-center text-white flex-1">
+<svg class="mx-auto text-white/50 mb-6" fill="none" height="240" stroke="currentColor" stroke-width="0.5" viewbox="0 0 24 24" width="240">
+<path d="M12 22v-6m0-12v6m0 0l-3-3m3 3l3-3M6 12H2m20 0h-4M5.636 5.636l2.828 2.828m8.486 8.486l2.828 2.828M5.636 18.364l2.828-2.828m8.486-8.486l2.828-2.828"></path>
+</svg>
+</div>
+<div class="flex flex-col items-center flex-none px-4">
+<p class="text-white/80 text-sm mb-4 font-light tracking-wide text-center">Electricity<br/>converted to heat</p>
+<svg fill="none" height="24" viewbox="0 0 40 24" width="40" xmlns="http://www.w3.org/2000/svg">
+<path d="M1 12H38M38 12L28 2M38 12L28 22" stroke="#C9DC6A" stroke-width="1.5"></path>
+</svg>
+</div>
+<div class="text-center text-white flex-1 relative h-64 flex items-center justify-center">
+<div class="flex gap-1 justify-center">
+<div class="w-16 h-32 bg-white/5 rounded-sm border border-white/20 transform -skew-y-[20deg] shadow-2xl backdrop-blur-sm"></div>
+<div class="w-16 h-32 bg-white/10 rounded-sm border border-white/30 transform -skew-y-[20deg] shadow-2xl backdrop-blur-sm z-10 -ml-4"></div>
+<div class="w-16 h-32 bg-white/5 rounded-sm border border-white/20 transform -skew-y-[20deg] shadow-2xl backdrop-blur-sm -ml-4"></div>
+</div>
+</div>
+<div class="flex flex-col items-center flex-none px-4">
+<p class="text-white/80 text-sm mb-4 font-light tracking-wide text-center">Heat supplied as<br/>hot gas</p>
+<svg fill="none" height="24" viewbox="0 0 40 24" width="40" xmlns="http://www.w3.org/2000/svg">
+<path d="M1 12H38M38 12L28 2M38 12L28 22" stroke="#C9DC6A" stroke-width="1.5"></path>
+</svg>
+</div>
+<div class="text-center text-white flex-1">
+<svg class="mx-auto text-white/50 mb-6" fill="none" height="240" stroke="currentColor" stroke-width="0.5" viewbox="0 0 24 24" width="240">
+<path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+</svg>
+</div>
+</div>
+</div>
+</section>
+<!-- 4. SECTION 4: WHY RESILO -->
+<section class="py-section-gap px-margin-mobile md:px-margin-desktop relative z-10">
+<div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+<div>
+<h2 class="text-[48px] md:text-[56px] leading-[1.1] font-light text-text-dark tracking-tight mb-8">Why Resilo?</h2>
+<p class="text-[20px] leading-relaxed text-text-dark/80 font-light mb-8">
+                We're building the first comprehensive operating system for distributed solar infrastructure. From proactive telemetry to automated field dispatch, Resilo connects the dots between generation, maintenance, and grid stability.
+            </p>
+<div class="flex gap-4">
+<button class="w-12 h-12 rounded-full border border-text-dark/20 flex items-center justify-center hover:bg-text-dark hover:text-white transition-colors">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<button class="w-12 h-12 rounded-full bg-text-dark text-white flex items-center justify-center hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</div>
+<div class="relative min-h-[450px]">
+<!-- Ghost Card -->
+<div class="absolute inset-0 bg-amber/30 rounded-[32px] transform translate-y-6 translate-x-6 z-0 border border-amber/50"></div>
+<!-- Front Card -->
+<div class="absolute inset-0 bg-amber rounded-[32px] p-12 flex flex-col justify-between z-10 shadow-xl border border-white/20">
+<div class="border-b border-dotted border-frame-charcoal/40 pb-3 mb-6">
+<span class="font-eyebrow text-eyebrow text-frame-charcoal uppercase tracking-widest font-bold">01 / CAPABILITIES</span>
+</div>
+<div>
+<h3 class="text-[32px] font-light text-frame-charcoal mb-4">Live IoT Telemetry</h3>
+<p class="text-frame-charcoal/80 text-lg mb-8">Real-time voltage, current, and temperature tracking at the panel level, feeding directly into our predictive models.</p>
+<div class="flex gap-4">
+<svg class="text-frame-charcoal opacity-70" fill="none" height="60" stroke="currentColor" stroke-width="1" viewbox="0 0 24 24" width="60">
+<circle cx="12" cy="12" r="10"></circle>
+<path d="M12 16v-4"></path>
+<path d="M12 8h.01"></path>
+</svg>
+<svg class="text-frame-charcoal opacity-70" fill="none" height="60" stroke="currentColor" stroke-width="1" viewbox="0 0 24 24" width="60">
+<path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path>
+<path d="M12 12v9"></path>
+<path d="m8 17 4 4 4-4"></path>
+</svg>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 5. SECTION 5: KPI METRICS STRIP -->
+<section class="py-12 px-margin-mobile md:px-margin-desktop relative z-10">
+<div class="max-w-7xl mx-auto bg-section-forest rounded-[16px] p-12 flex flex-col md:flex-row items-center justify-around shadow-2xl relative overflow-hidden">
+<div class="text-center z-10 relative">
+<div class="font-display-stat text-[100px] md:text-[140px] text-white font-extralight leading-none tracking-tighter mb-2">75<span class="text-[60px]">%</span></div>
+<p class="text-white/60 font-eyebrow tracking-widest uppercase">Reduction in Downtime</p>
+</div>
+<div class="w-full h-px md:w-px md:h-32 bg-white/20 my-8 md:my-0 z-10 relative"></div>
+<div class="text-center z-10 relative">
+<div class="font-display-stat text-[100px] md:text-[140px] text-secondary-fixed font-extralight leading-none tracking-tighter mb-2">85<span class="text-[60px]">%</span></div>
+<p class="text-white/60 font-eyebrow tracking-widest uppercase">Audit Efficiency Gain</p>
+</div>
+</div>
+</section>
+<!-- 6. SECTION 6: AUDIT PROGRESS -->
+<section class="py-section-gap px-margin-mobile md:px-margin-desktop relative z-10">
+<div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+<div>
+<h2 class="text-[48px] md:text-[56px] leading-[1.1] font-light text-text-dark tracking-tight mb-8">6 of 40 Audits Complete</h2>
+<p class="text-[20px] leading-relaxed text-text-dark/80 font-light mb-8">
+                Our initial deployment phase focuses on critical installations across Bastar, Bilaspur, and Raigarh. We're actively mapping existing infrastructure to our digital twin platform, identifying critical vulnerabilities before they cause system-wide failures.
+            </p>
+</div>
+<div class="bg-amber rounded-[32px] p-10 shadow-xl border border-white/20 flex flex-col justify-between">
+<div class="border-b border-dotted border-frame-charcoal/40 pb-3 mb-8">
+<span class="font-eyebrow text-eyebrow text-frame-charcoal uppercase tracking-widest font-bold">DISTRICT BREAKDOWN</span>
+</div>
+<ul class="space-y-6 mb-12">
+<li class="flex justify-between items-center text-lg text-frame-charcoal font-medium border-b border-frame-charcoal/10 pb-4">
+<span>Bastar Region</span>
+<span class="opacity-70">3 / 15</span>
+</li>
+<li class="flex justify-between items-center text-lg text-frame-charcoal font-medium border-b border-frame-charcoal/10 pb-4">
+<span>Bilaspur Grid</span>
+<span class="opacity-70">2 / 12</span>
+</li>
+<li class="flex justify-between items-center text-lg text-frame-charcoal font-medium border-b border-frame-charcoal/10 pb-4">
+<span>Raigarh Sector</span>
+<span class="opacity-70">1 / 13</span>
+</li>
+</ul>
+<div>
+<div class="flex justify-between text-sm font-bold text-frame-charcoal mb-3">
+<span>OVERALL PROGRESS</span>
+<span>15%</span>
+</div>
+<div class="h-3 w-full bg-frame-charcoal/10 rounded-full overflow-hidden">
+<div class="h-full bg-frame-charcoal rounded-full" style="width: 15%"></div>
+</div>
+<div class="text-right text-xs text-frame-charcoal/60 mt-2 font-bold tracking-wider">6/40 LABELED</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 7. SECTION 7: ABOUT / TEAM -->
+<section class="py-section-gap px-margin-mobile md:px-margin-desktop relative z-10">
+<div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+<div>
+<h2 class="text-[48px] md:text-[56px] leading-[1.1] font-light text-text-dark tracking-tight mb-8">NIT Raipur Students</h2>
+<p class="text-[20px] leading-relaxed text-text-dark/80 font-light mb-8">
+                Team Luminova started as a research initiative at NIT Raipur to solve the pressing issue of solar infrastructure decay. Winning Climatathon 2026 validated our approach, turning a theoretical digital twin model into Resilo - a deployable platform for grid resilience.
+            </p>
+</div>
+<div class="relative min-h-[500px]">
+<!-- Ghost Card -->
+<div class="absolute inset-0 bg-secondary-fixed/30 rounded-[32px] transform -translate-y-6 -translate-x-6 z-0 border border-secondary-fixed/50"></div>
+<!-- Front Card -->
+<div class="absolute inset-0 bg-secondary-fixed rounded-[32px] p-12 flex flex-col justify-between z-10 shadow-xl border border-white/20">
+<div class="border-b border-dotted border-frame-charcoal/40 pb-3 mb-6">
+<span class="font-eyebrow text-eyebrow text-frame-charcoal uppercase tracking-widest font-bold">TEAM LUMINOVA</span>
+</div>
+<div class="grid grid-cols-2 gap-x-8 gap-y-6">
+<div>
+<div class="font-bold text-frame-charcoal text-lg">Anurag</div>
+<div class="text-sm text-frame-charcoal/70">Systems Architect</div>
+</div>
+<div>
+<div class="font-bold text-frame-charcoal text-lg">Kalyan</div>
+<div class="text-sm text-frame-charcoal/70">Hardware Lead</div>
+</div>
+<div>
+<div class="font-bold text-frame-charcoal text-lg">Debanjan</div>
+<div class="text-sm text-frame-charcoal/70">Data Models</div>
+</div>
+<div>
+<div class="font-bold text-frame-charcoal text-lg">Ketan</div>
+<div class="text-sm text-frame-charcoal/70">Operations</div>
+</div>
+<div>
+<div class="font-bold text-frame-charcoal text-lg">Anish</div>
+<div class="text-sm text-frame-charcoal/70">Frontend UI</div>
+</div>
+<div>
+<div class="font-bold text-frame-charcoal text-lg">Satyam</div>
+<div class="text-sm text-frame-charcoal/70">Backend Eng</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Footer (Shared Component) -->
+<footer class="bg-section-forest flex flex-col w-full pt-section-gap px-margin-mobile md:px-margin-desktop pb-0 rounded-b-wrapper relative z-20">
+<div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-12 mb-16">
+<div class="max-w-2xl">
+<h2 class="text-[56px] md:text-[64px] leading-[1.1] text-white mb-12 font-light tracking-tight">Ready to bring your facilities online?</h2>
+<a class="inline-flex bg-secondary-fixed text-text-dark rounded-full pl-8 pr-2 py-3 items-center gap-6 hover:opacity-90 transition-opacity w-max" href="#">
+<span class="font-label-md text-label-md uppercase tracking-wider font-bold">Get in Touch</span>
+<div class="w-8 h-8 rounded-full bg-frame-charcoal"></div>
+</a>
+</div>
+</div>
+<div class="bg-text-dark -mx-margin-mobile md:-mx-margin-desktop px-margin-mobile md:px-margin-desktop py-10 flex flex-col md:flex-row justify-between items-center gap-6 mt-12 rounded-b-wrapper border-t border-white/5">
+<div class="font-headline-md text-[28px] text-white flex items-center gap-1 font-bold tracking-tight">
+                    RESILO<span class="text-secondary-fixed">3</span>
+</div>
+<div class="flex flex-wrap gap-8 justify-center">
+<a class="font-body-md text-body-md text-white/60 hover:text-white transition-colors font-light" href="#">Privacy Policy</a>
+<a class="font-body-md text-body-md text-white/60 hover:text-white transition-colors font-light" href="#">Terms of Service</a>
+<a class="font-body-md text-body-md text-white/60 hover:text-white transition-colors font-light" href="#">Cookie Policy</a>
+</div>
+<div class="font-body-md text-sm text-secondary-fixed font-light tracking-wide">
+                    © 2024 RESILO. All rights reserved.
+                </div>
+</div>
+</footer>
+</div>
+</body></html>

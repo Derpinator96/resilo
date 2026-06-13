@@ -1,0 +1,72 @@
+# ==============================================================================
+# RESILO - PROJECT REQUIREMENTS & DEPENDENCIES
+# ==============================================================================
+# This file lists all the dependencies for the Frontend (React + Vite), 
+# Backend (Node.js + Express), and Machine Learning (Python + FastAPI) services.
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. FRONTEND DEPENDENCIES (React + Vite)
+# ------------------------------------------------------------------------------
+# Location: Root Directory (package.json)
+# To install: npm install
+
+@clerk/clerk-react>=5.61.7       # Clerk Authentication SDK for React
+@emailjs/browser>=4.4.1          # EmailJS SDK for sending emails directly from frontend
+@gsap/react>=2.1.2               # React wrapper for GSAP animations
+@vitejs/plugin-react>=4.2.1      # Vite plugin for React HMR
+cloudinary>=2.10.0               # Cloudinary SDK for media management
+framer-motion>=12.40.0           # Motion library for fluid transitions/animations
+gsap>=3.15.0                     # GreenSock Animation Platform for advanced UI effects
+lucide-react>=0.577.0            # Icon pack for modern UI icons
+react>=18.2.0                    # Core React library
+react-dom>=18.2.0                # React DOM library
+react-router-dom>=6.22.3         # Declarative routing for React apps
+recharts>=3.8.0                  # Composable charting library built on React components
+
+# Frontend DevDependencies:
+autoprefixer>=10.4.19            # PostCSS plugin to parse CSS and add vendor prefixes
+concurrently>=9.2.1              # Run multiple commands concurrently (Vite + Node Server)
+eslint>=8.57.0                   # Linter for JavaScript/JSX code quality
+postcss>=8.4.38                  # CSS post-processing tool
+tailwindcss>=3.4.1               # Utility-first CSS framework
+vite>=5.2.0                      # Modern frontend tooling & bundler
+
+
+# ------------------------------------------------------------------------------
+# 2. BACKEND DEPENDENCIES (Node.js + Express)
+# ------------------------------------------------------------------------------
+# Location: /server (server/package.json)
+# To install: cd server && npm install
+
+@clerk/clerk-sdk-node>=4.13.23   # Clerk Backend SDK for Express Authentication middleware
+axios>=1.13.6                    # Promise-based HTTP client for API calls
+bcryptjs>=3.0.2                  # Password hashing utility (fallback/local auth)
+cloudinary>=2.10.0               # Cloudinary integration for sanitization image uploads
+cookie-parser>=1.4.7             # Parse HTTP Request cookies
+cors>=2.8.6                      # Express middleware to enable Cross-Origin Resource Sharing
+dotenv>=17.3.1                   # Load environment variables from .env files
+express>=5.2.1                   # Fast, unopinionated web framework for Node.js
+form-data>=4.0.5                 # Form-data boundary stream helpers for Axios requests
+jimp>=0.22.12                    # Image processing library for backend image handling
+jsonwebtoken>=9.0.3              # JSON Web Token implementation for session security
+mongoose>=9.3.0                  # MongoDB object modeling tool (ODM) for Node.js
+multer>=2.1.1                    # Middleware for handling multipart/form-data (file uploads)
+node-cron>=4.2.1                 # Cron job scheduler for recurring server tasks
+nodemon>=3.1.14                  # Dev tool for auto-restarting server on file changes
+openai>=6.29.0                   # OpenAI API library (compatible with NVIDIA NIM API endpoints)
+
+
+# ------------------------------------------------------------------------------
+# 3. MACHINE LEARNING & PREDICTION API DEPENDENCIES (Python + FastAPI)
+# ------------------------------------------------------------------------------
+# Location: /Machine Learning (requirements.txt standard format)
+# To install: pip install -r REQUIREMENTS.txt (or from Python env)
+
+fastapi>=0.110.0                 # High-performance web framework for building APIs
+uvicorn>=0.28.0                  # ASGI server implementation to run FastAPI app
+joblib>=1.3.2                    # Lightweight pipelining and model persistence (load RandomForest/XGBoost .pkl)
+pandas>=2.2.1                    # Data manipulation and analysis library
+scikit-learn>=1.4.1              # Machine learning library (required for RandomForest model)
+xgboost>=2.0.3                   # Optimized gradient boosting library (for solar energy predictions)
+requests>=2.31.0                 # Python HTTP requests library for model downloads/APIs

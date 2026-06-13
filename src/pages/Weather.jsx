@@ -108,7 +108,7 @@ export default function Weather() {
 
         {/* Disaster Alerts */}
         {isFloodWarning && (
-          <div className="flex items-start gap-4 p-5 mb-8 text-red-900 bg-red-100 border border-red-200 shadow-sm rounded-xl animate-fade-in">
+          <div className="flex items-start gap-4 p-5 mb-8 text-red-900 bg-red-100 border border-red-200 shadow-sm rounded-xl">
             <AlertTriangle size={24} className="shrink-0 text-red-600 mt-0.5" />
             <div>
               <h3 className="text-lg font-bold tracking-tight">FLOOD WARNING</h3>
@@ -120,7 +120,7 @@ export default function Weather() {
         )}
 
         {isDroughtAlert && (
-           <div className="flex items-start gap-4 p-5 mb-8 text-orange-900 bg-orange-100 border border-orange-200 shadow-sm rounded-xl animate-fade-in">
+           <div className="flex items-start gap-4 p-5 mb-8 text-orange-900 bg-orange-100 border border-orange-200 shadow-sm rounded-xl">
              <AlertTriangle size={24} className="shrink-0 text-orange-600 mt-0.5" />
              <div>
                <h3 className="text-lg font-bold tracking-tight">HEAT/DROUGHT ALERT</h3>
@@ -132,7 +132,7 @@ export default function Weather() {
         )}
 
         {showSafeBanner && (
-           <div className="flex items-start gap-4 p-5 mb-8 text-teal-900 bg-teal-50 border border-teal-200 shadow-sm rounded-xl animate-fade-in">
+           <div className="flex items-start gap-4 p-5 mb-8 text-teal-900 bg-teal-50 border border-teal-200 shadow-sm rounded-xl">
              <div className="p-1 bg-teal-200 rounded-full shrink-0 text-teal-700 mt-0.5">
                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"></path></svg>
              </div>

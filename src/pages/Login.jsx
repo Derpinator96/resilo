@@ -8,12 +8,12 @@ export default function Login() {
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen p-6 overflow-hidden bg-slate-50">
       {/* Decorative Background Elements */}
-      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-stripe-gradient opacity-20 blur-3xl mix-blend-multiply pointer-events-none animate-fade-in"></div>
-      <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full bg-stripe-gradient opacity-10 blur-3xl mix-blend-multiply pointer-events-none animate-fade-in" style={{ animationDelay: '0.2s' }}></div>
+      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-stripe-gradient opacity-20 blur-3xl mix-blend-multiply pointer-events-none"></div>
+      <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full bg-stripe-gradient opacity-10 blur-3xl mix-blend-multiply pointer-events-none"></div>
 
       <div className="z-10 w-full max-w-4xl">
         {/* Header */}
-        <div className="mb-12 text-center animate-slide-up">
+        <div className="mb-12 text-center">
           <div className="inline-flex items-center justify-center w-20 h-20 mb-6 shadow-xl rounded-3xl bg-stripe-gradient shadow-indigo-500/20">
             <span className="text-4xl font-black text-white">R</span>
           </div>
@@ -26,7 +26,7 @@ export default function Login() {
         </div>
 
         {/* Unified Auth Box */}
-        <div className="p-8 mx-auto shadow-2xl bg-glass rounded-3xl animate-slide-up text-center max-w-lg" style={{ animationDelay: '0.1s' }}>
+        <div className="p-8 mx-auto shadow-2xl bg-glass rounded-3xl text-center max-w-lg">
           
           <SignedOut>
             <div className="mb-8 text-slate-600">

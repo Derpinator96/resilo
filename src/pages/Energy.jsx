@@ -93,7 +93,7 @@ export default function Energy() {
           
           <div className="grid grid-cols-2 gap-4">
              <div className="flex items-center gap-4 p-5 bg-white border border-gray-100 rounded-2xl">
-               <Zap className="text-purple-500" size={24} />
+               <Zap className="text-teal-500" size={24} />
                <div>
                  <p className="text-xs font-semibold tracking-wider text-gray-400">DRAW</p>
                  <p className="font-semibold text-slate-800">1.2 kW</p>

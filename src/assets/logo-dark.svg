@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 28" fill="none">
+  <g transform="translate(0, 5)" fill="#0D9488">
+    <rect x="1" y="1" width="6" height="7" rx="1"/>
+    <rect x="9" y="1" width="6" height="7" rx="1"/>
+    <rect x="17" y="1" width="6" height="7" rx="1"/>
+    <rect x="1" y="10" width="6" height="7" rx="1"/>
+    <rect x="9" y="10" width="6" height="7" rx="1"/>
+    <rect x="17" y="10" width="6" height="7" rx="1"/>
+  </g>
+  <text x="32" y="20" font-family="Inter, sans-serif" font-weight="bold" font-size="16" fill="#0A192F" letter-spacing="0.05em">RESILO</text>
+</svg>

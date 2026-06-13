@@ -516,14 +516,88 @@ app.post('/api/reports/:id/suggest', async (req, res) => {
 // --- Global Chatbot Endpoint ---
 app.post('/api/chat', async (req, res) => {
   try {
-    const { messages } = req.body;
+    const { messages, context } = req.body;
     if (!messages || !Array.isArray(messages)) {
       return res.status(400).json({ error: 'Valid messages array is required' });
     }
 
-    const systemPrompt = "You are the 'Resilo' Crisis Expert for Chhattisgarh. RESPONSE RULES: 1. LANGUAGE: Respond in the SAME language as the user's question (Hindi/English/Hinglish). 2. STRUCTURE: 🚀 RELIEF: Immediate safety step. ⚠️ DANGER: Health risks (e.g. Cholera, Typhoid). 🛠️ ACTION: Instant fix. 📞 CALL: Use real CG numbers: PHED 1800-233-0008, Health 108, CSEB 1912. 3. STYLE: Use BIG icons. Bold text. NO MARKDOWN symbols like asterisks. Max 60 words.";
+    // Build system prompt — context-aware if a facility is provided
+    let systemPrompt;
 
-    // Prepend the system prompt invisibly to the user messages array
+    if (context && context.facilityName) {
+      const c = context;
+      const batteryInfo = c.battery
+        ? `Battery bank: ${c.battery.count}× ${c.battery.voltage}V ${c.battery.capacityAh}Ah (${c.battery.Manufacturer}).`
+        : '';
+      const inverterInfo = c.inverter
+        ? `Inverter: ${c.inverter.make}, ${c.inverter.inverterRatingKVA} KVA, ${c.inverter.voltage}V, type: ${c.inverter.type}.`
+        : '';
+      const solarInfo = c.totalCapacityKwp
+        ? `Solar PV: ${c.noOfPanels} panels × ${c.pvRatingPerPanel}W = ${c.totalCapacityKwp} kWp total. Manufacturer: ${c.pvManufacturer || 'unknown'}. PV voltage: ${c.pvVoltage || 'N/A'}V. Installed: ${c.dateOfInstallation || 'unknown'}.`
+        : '';
+      const recentSolar = c.recentActualSolarGeneration?.length
+        ? `Recent actual solar generation: ${c.recentActualSolarGeneration.join(', ')}.`
+        : '';
+      const idealSolar = c.recentIdealSolarGeneration?.length
+        ? `Recent ideal (modeled) solar generation: ${c.recentIdealSolarGeneration.join(', ')}.`
+        : '';
+      const gridInfo = c.recentGridConsumption?.length
+        ? `Recent grid consumption: ${c.recentGridConsumption.join(', ')}.`
+        : '';
+      const loadsInfo = c.allLoads?.length
+        ? `Connected loads: ${c.allLoads.join('; ')}.`
+        : '';
+      const criticalInfo = c.criticalLoads?.length
+        ? `Critical loads (must never lose power): ${c.criticalLoads.join('; ')}.`
+        : '';
+      const additionalParts = [];
+      if (c.additionalInfo) {
+        const ai = c.additionalInfo;
+        if (ai.noofBeds) additionalParts.push(`Beds: ${ai.noofBeds}`);
+        if (ai.noofOPDdaily) additionalParts.push(`OPD daily: ${ai.noofOPDdaily}`);
+        if (ai.noofIPDAdmissionperMonth) additionalParts.push(`IPD/month: ${ai.noofIPDAdmissionperMonth}`);
+        if (ai.noofdeliveryperMonth) additionalParts.push(`Deliveries/month: ${ai.noofdeliveryperMonth}`);
+        if (ai.gridSupply !== undefined) additionalParts.push(`Grid supply available: ${ai.gridSupply ? 'Yes' : 'No'}`);
+        if (ai.gridsupplyQuality) additionalParts.push(`Grid quality: ${ai.gridsupplyQuality}`);
+        if (ai.Supply) additionalParts.push(`Supply phase: ${ai.Supply}`);
+        if (ai.batterybackuptillSunrise) additionalParts.push(`Battery lasts till sunrise: ${ai.batterybackuptillSunrise}`);
+        if (ai.downtimeduringFaults) additionalParts.push(`Downtime during faults: ${ai.downtimeduringFaults}`);
+        if (ai.failureFrequencyofsolarPanels) additionalParts.push(`Panel failure frequency: ${ai.failureFrequencyofsolarPanels}`);
+        if (ai.panelmaintenanceFrequency) additionalParts.push(`Panel maintenance frequency: ${ai.panelmaintenanceFrequency}`);
+      }
+      const additionalInfo = additionalParts.length ? `Facility stats: ${additionalParts.join('. ')}.` : '';
+      const remarksInfo = c.remarks ? `Operator remarks: "${c.remarks}".` : '';
+
+      systemPrompt = `You are the Resilo AI Copilot — a solar energy and rural health-facility expert for Chhattisgarh, India.
+
+You have FULL CONTEXT on the facility the user is currently viewing:
+
+FACILITY: "${c.facilityName}" in ${c.district} district (Lat ${c.latitude}, Lon ${c.longitude}).
+Audit month: ${c.month || 'N/A'}. Monthly energy consumption: ${c.monthlyEnergyConsumption || 'N/A'} kWh.
+
+${solarInfo}
+${batteryInfo}
+${inverterInfo}
+${recentSolar}
+${idealSolar}
+${gridInfo}
+${loadsInfo}
+${criticalInfo}
+${additionalInfo}
+${remarksInfo}
+
+RESPONSE RULES:
+1. LANGUAGE: Respond in the SAME language as the user's question (Hindi, English, or Hinglish).
+2. Always reference the facility's ACTUAL data when answering. If the user asks "what does 450 kWh mean", compare it to this facility's ideal generation, grid consumption, and capacity.
+3. Explain technical terms (kWh, kWp, Ah, KVA) in plain language when asked.
+4. If a value looks anomalous compared to the ideal, flag it clearly.
+5. Be concise but thorough. Use icons for emphasis. NO markdown asterisks.
+6. For emergencies, provide real CG helpline numbers: PHED 1800-233-0008, Health 108, CSEB 1912.
+7. Max 200 words per response.`;
+    } else {
+      systemPrompt = "You are the 'Resilo' Crisis Expert for Chhattisgarh. RESPONSE RULES: 1. LANGUAGE: Respond in the SAME language as the user's question (Hindi/English/Hinglish). 2. STRUCTURE: 🚀 RELIEF: Immediate safety step. ⚠️ DANGER: Health risks (e.g. Cholera, Typhoid). 🛠️ ACTION: Instant fix. 📞 CALL: Use real CG numbers: PHED 1800-233-0008, Health 108, CSEB 1912. 3. STYLE: Use BIG icons. Bold text. NO MARKDOWN symbols like asterisks. Max 60 words.";
+    }
+
     const apiMessages = [
       { role: 'system', content: systemPrompt },
       ...messages
@@ -534,8 +608,8 @@ app.post('/api/chat', async (req, res) => {
     const response = await openai.chat.completions.create({
       model: targetModel,
       messages: apiMessages,
-      max_tokens: 200, // Keep short as requested
-      temperature: 0.3 // Keep factual
+      max_tokens: context ? 500 : 200,
+      temperature: 0.3
     });
 
     res.json({ reply: response.choices[0].message.content });

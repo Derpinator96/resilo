@@ -41,7 +41,7 @@ export default function WhyResilo() {
           <span className="text-[11px] font-bold text-[#E8581A] uppercase tracking-widest border-b border-dotted border-[#B0C0B0] pb-1 block w-fit mb-6">
             Why Resilo?
           </span>
-          <h2 className="text-4xl md:text-5xl font-light text-slate-900 tracking-tight leading-tight mb-6">
+          <h2 className="text-4xl md:text-5xl font-light text-[#1C1C1C] tracking-tight leading-tight mb-6">
             Smarter infrastructure for a resilient future.
           </h2>
           <p className="text-lg text-slate-600 font-medium mb-10 max-w-md">
@@ -94,10 +94,10 @@ export default function WhyResilo() {
 
           {/* Controls */}
           <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-4">
-            <button onClick={prevCard} className="w-12 h-12 rounded-full bg-white shadow-lg border border-slate-100 flex items-center justify-center hover:bg-slate-50 transition-colors text-slate-800">
+            <button onClick={prevCard} className="w-12 h-12 rounded-full bg-white shadow-lg border border-slate-100 flex items-center justify-center hover:bg-[#F0F5F0] transition-colors text-slate-800">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
             </button>
-            <button onClick={nextCard} className="w-12 h-12 rounded-full bg-white shadow-lg border border-slate-100 flex items-center justify-center hover:bg-slate-50 transition-colors text-slate-800">
+            <button onClick={nextCard} className="w-12 h-12 rounded-full bg-white shadow-lg border border-slate-100 flex items-center justify-center hover:bg-[#F0F5F0] transition-colors text-slate-800">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
             </button>
           </div>

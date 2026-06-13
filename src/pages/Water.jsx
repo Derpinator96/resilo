@@ -111,7 +111,7 @@ export default function Water() {
 
         {/* Simulated Warning Modal / Alert Banner */}
         {isSubmitted && (
-          <div className="animate-fade-in">
+          <div>
             {isDanger ? (
                <div className="flex items-start gap-4 p-5 text-red-900 bg-red-100 border border-red-200 shadow-sm rounded-xl">
                  <AlertCircle size={24} className="shrink-0 text-red-600 mt-0.5" />

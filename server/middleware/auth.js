@@ -29,9 +29,12 @@ export const requireAuth = [
 // Generic Role Check Middleware
 export const requireRole = (allowedRoles) => {
   return (req, res, next) => {
+    console.log(`[requireRole] User: ${req.user?.clerkUserId}, Decoded Role: ${req.user?.role}`);
     if (!req.user || !allowedRoles.includes(req.user.role)) {
+      console.log(`[requireRole] Access Denied. Expected one of: ${allowedRoles.join(', ')}`);
       return res.status(403).json({ error: 'Forbidden: Insufficient role' });
     }
+    console.log(`[requireRole] Access Granted.`);
     next();
   };
 };

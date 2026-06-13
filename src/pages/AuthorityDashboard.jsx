@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useUser, useClerk, useAuth } from '@clerk/clerk-react'
+import { useRole } from '../hooks/useRole'
 import { ShieldAlert, Cpu, Activity, Clock, CheckCircle, MessageSquare, ArrowRight, Shield, List, Users, Database } from 'lucide-react'
 import UpdateCentre from '../components/UpdateCentre'
-
+import logoDark from '../assets/logo-dark.svg'
+import MeshBackground from '../components/MeshBackground'
 export default function AuthorityDashboard() {
   const { user } = useUser()
   const { signOut } = useClerk()
@@ -114,243 +116,279 @@ export default function AuthorityDashboard() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-slate-900">
+      <div className="flex justify-center items-center min-h-screen bg-slate-50/70 backdrop-blur-md">
         <div className="w-12 h-12 border-4 border-rose-500/30 rounded-full border-t-rose-500 animate-spin"></div>
       </div>
     )
   }
 
-  const userRole = user?.publicMetadata?.role || 'community'
+  const { role: userRole } = useRole()
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 font-sans">
-      <nav className="flex items-center justify-between px-6 py-4 bg-slate-800 border-b border-slate-700">
-        <div className="flex items-center gap-4">
-          <div className="p-2 bg-rose-500/20 text-rose-500 rounded-lg">
-            <ShieldAlert size={28} />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold tracking-tight text-white">RESILO ALERT CENTER</h1>
-            <p className="text-xs font-semibold text-rose-400 uppercase">STATE {userRole.replace('_', ' ')} PORTAL</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => navigate('/dashboard')}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white transition-colors border border-slate-600 rounded-lg hover:bg-slate-700"
-          >
-            Global Dashboard <ArrowRight size={16} />
-          </button>
-          <button
-            onClick={() => { signOut(); navigate('/'); }}
-            className="text-sm font-bold text-slate-400 hover:text-white"
-          >
-            Sign Out
-          </button>
-        </div>
-      </nav>
-
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        <div className="flex flex-wrap gap-4 mb-8">
-          <button
-            onClick={() => setActiveTab('Active')}
-            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${activeTab === 'Active' ? 'bg-rose-600 text-white shadow-[0_0_20px_rgba(225,29,72,0.4)]' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}
-          >
-            <Activity size={20} /> Active Incidents
-            <span className={`px-2 py-0.5 ml-2 text-xs rounded-full ${activeTab === 'Active' ? 'bg-white text-rose-600' : 'bg-slate-700 text-slate-300'}`}>
-              {activeReports.length}
+    <div className="relative flex flex-col min-h-[calc(100vh-36px)] font-sans pb-32">
+      <MeshBackground />
+      
+      <div className="relative z-10 flex flex-col flex-1 pt-[92px]">
+        {/* Page Header */}
+        <div className="px-8 pt-6 pb-2 shrink-0">
+          <div className="flex items-center gap-4 mb-4">
+            <img src={logoDark} alt="Resilo" className="h-[28px]" />
+            <h1 className="text-[28px] font-extrabold text-[#0A192F] tracking-tight">ALERT CENTER</h1>
+            <span className="px-3 py-1 text-xs font-bold uppercase tracking-wider bg-teal-100 text-teal-800 rounded-full border border-teal-200 shadow-sm ml-2">
+              STATE {userRole.replace('_', ' ')} PORTAL
             </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('History')}
-            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${activeTab === 'History' ? 'bg-emerald-600 text-white shadow-[0_0_20px_rgba(5,150,105,0.4)]' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}
-          >
-            <Clock size={20} /> Resolution History
-          </button>
-
-          {(userRole === 'super_admin' || userRole === 'admin') && (
-            <>
-              <button
-                onClick={() => setActiveTab('Demands')}
-                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${activeTab === 'Demands' ? 'bg-indigo-600 text-white shadow-[0_0_20px_rgba(79,70,229,0.4)]' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}
-              >
-                <Users size={20} /> Access Demands
-              </button>
-
-              <button
-                onClick={() => setActiveTab('Manage Data')}
-                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${activeTab === 'Manage Data' ? 'bg-sky-600 text-white shadow-[0_0_20px_rgba(2,132,199,0.4)]' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}
-              >
-                <Database size={20} /> Manage Data
-              </button>
-
-              <button
-                onClick={() => setActiveTab('Logs')}
-                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${activeTab === 'Logs' ? 'bg-slate-600 text-white shadow-[0_0_20px_rgba(71,85,105,0.4)]' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}
-              >
-                <List size={20} /> Audit Logs
-              </button>
-            </>
-          )}
+          </div>
         </div>
 
-        <div className="space-y-4">
-          {activeTab === 'Manage Data' && <UpdateCentre />}
-          {(activeTab === 'Active' || activeTab === 'History') && (
-            (activeTab === 'Active' ? activeReports : historyReports).length === 0 ? (
-              <div className="py-20 text-center border-2 border-dashed border-slate-700 rounded-3xl">
-                <CheckCircle size={48} className="mx-auto mb-4 text-slate-600" />
-                <h3 className="text-xl font-bold text-slate-400">No {activeTab.toLowerCase()} incidents in the pipeline.</h3>
-              </div>
-            ) : (
-              (activeTab === 'Active' ? activeReports : historyReports).map(report => (
-                <div key={report._id} className={`p-6 bg-slate-800 rounded-2xl border ${report.status === 'Active' ? (report.type === 'Auto' ? 'border-orange-500/50 shadow-lg shadow-orange-500/10' : 'border-rose-500/50 shadow-lg shadow-rose-500/10') : 'border-slate-700 opacity-60'} animate-slide-up`}>
-                  <div className="flex items-start justify-between">
-                    <div className="flex gap-4">
-                      <div className={`mt-1 p-3 rounded-xl ${report.type === 'Auto' ? 'bg-orange-500/20 text-orange-400' : 'bg-rose-500/20 text-rose-400'}`}>
+        {/* Tab Navigation Bar */}
+        <div className="px-8 shrink-0 sticky top-[92px] z-30 bg-transparent py-2">
+          <div className="flex flex-row gap-3 overflow-x-auto pb-4 border-b border-slate-200">
+            <button
+              onClick={() => setActiveTab('Active')}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold text-sm transition-all whitespace-nowrap ${
+                activeTab === 'Active' 
+                  ? 'bg-[#0A192F] text-white shadow-md' 
+                  : 'bg-white/70 text-slate-500 border border-slate-200 hover:bg-white hover:text-slate-700'
+              }`}
+            >
+              <Activity size={18} /> Active Incidents
+              <span className={`px-2 py-0.5 ml-1 text-xs rounded-full font-bold ${
+                activeTab === 'Active' ? 'bg-white text-[#0A192F]' : 'bg-slate-100 text-slate-600'
+              }`}>
+                {activeReports.length}
+              </span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('History')}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold text-sm transition-all whitespace-nowrap ${
+                activeTab === 'History' 
+                  ? 'bg-[#0A192F] text-white shadow-md' 
+                  : 'bg-white/70 text-slate-500 border border-slate-200 hover:bg-white hover:text-slate-700'
+              }`}
+            >
+              <Clock size={18} /> Resolution History
+            </button>
+
+            {(userRole === 'super_admin' || userRole === 'admin') && (
+              <>
+                <button
+                  onClick={() => setActiveTab('Demands')}
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold text-sm transition-all whitespace-nowrap ${
+                    activeTab === 'Demands' 
+                      ? 'bg-[#0A192F] text-white shadow-md' 
+                      : 'bg-white/70 text-slate-500 border border-slate-200 hover:bg-white hover:text-slate-700'
+                  }`}
+                >
+                  <Users size={18} /> Access Demands
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('Manage Data')}
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold text-sm transition-all whitespace-nowrap ${
+                    activeTab === 'Manage Data' 
+                      ? 'bg-[#0A192F] text-white shadow-md' 
+                      : 'bg-white/70 text-slate-500 border border-slate-200 hover:bg-white hover:text-slate-700'
+                  }`}
+                >
+                  <Database size={18} /> Manage Data
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('Logs')}
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold text-sm transition-all whitespace-nowrap ${
+                    activeTab === 'Logs' 
+                      ? 'bg-[#0A192F] text-white shadow-md' 
+                      : 'bg-white/70 text-slate-500 border border-slate-200 hover:bg-white hover:text-slate-700'
+                  }`}
+                >
+                  <List size={18} /> Audit Logs
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Tab Content Area */}
+        <div className="flex-1 overflow-y-auto px-8 py-6 relative">
+          
+          {/* Active Incidents Tab */}
+          {activeTab === 'Active' && (
+            <div className="space-y-4 max-w-4xl">
+              {activeReports.length === 0 ? (
+                <div className="py-20 text-center border-2 border-dashed border-slate-200 rounded-3xl bg-white/40 backdrop-blur-sm">
+                  <CheckCircle size={48} className="mx-auto mb-4 text-teal-500" />
+                  <h3 className="text-lg font-semibold text-slate-600">No active incidents in the pipeline.</h3>
+                </div>
+              ) : (
+                activeReports.map(report => (
+                  <div key={report._id} className="p-5 bg-white/70 backdrop-blur-md border border-slate-200 shadow-[0_1px_3px_rgba(0,0,0,0.06)] rounded-xl flex flex-col md:flex-row items-start justify-between gap-4">
+                    <div className="flex gap-4 flex-1 w-full">
+                      <div className={`mt-1 shrink-0 p-3 rounded-xl ${report.type === 'Auto' ? 'bg-orange-50 text-orange-600 border border-orange-100' : 'bg-rose-50 text-rose-600 border border-rose-100'}`}>
                         {report.type === 'Auto' ? <Cpu size={24} /> : <MessageSquare size={24} />}
                       </div>
-
-                      <div>
+                      <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <span className={`px-2.5 py-1 text-xs font-black uppercase tracking-wider rounded-md ${report.type === 'Auto' ? 'bg-orange-500 text-white' : 'bg-rose-500 text-white'}`}>
+                          <span className={`px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider rounded-md ${report.type === 'Auto' ? 'bg-orange-100 text-orange-800' : 'bg-rose-100 text-rose-800'}`}>
                             {report.type} ESCALATION
                           </span>
-                          <span className="text-sm font-semibold text-slate-400 flex items-center gap-1">
-                            <Clock size={14} /> {timeAgo(report.createdAt)}
+                          <span className="text-xs font-medium text-slate-400 flex items-center gap-1">
+                            <Clock size={12} /> {timeAgo(report.createdAt)}
                           </span>
                         </div>
-
-                        <h2 className="text-2xl font-bold text-white mb-1">
+                        <h2 className="text-lg font-semibold text-slate-900 mb-1">
                           [{report.component}] Critical Failure
                         </h2>
-                        <p className="text-slate-300 font-medium mb-3">Facility: <span className="text-white">{report.instituteName}</span></p>
-
-                        <div className="p-4 bg-slate-900 rounded-xl mb-4 border border-slate-700">
-                          <p className="text-slate-300">"{report.description}"</p>
+                        <p className="text-sm font-medium text-slate-600 mb-3">Facility: <span className="text-slate-900 font-bold">{report.instituteName}</span></p>
+                        
+                        <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg mb-4 text-sm text-slate-600 italic">
+                          "{report.description}"
                         </div>
 
-                        {report.status === 'Active' && (
-                          <div className="mt-4">
-                            {suggestions[report._id] ? (
-                              <div className="p-4 bg-indigo-500/10 border border-indigo-500/30 rounded-xl">
-                                <div className="flex items-center gap-2 mb-2 text-indigo-400 font-bold uppercase text-xs tracking-wider">
-                                  <Cpu size={14} /> NVIDIA NIM Synthetic Response
-                                </div>
-                                <p className="text-indigo-100">{suggestions[report._id]}</p>
-                              </div>
-                            ) : (
-                              <button
-                                onClick={() => handleGenerateAISuggestion(report._id)}
-                                disabled={generatingFor === report._id}
-                                className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-indigo-400 bg-indigo-500/10 rounded-lg hover:bg-indigo-500/20 transition-colors disabled:opacity-50"
-                              >
-                                <Cpu size={16} /> {generatingFor === report._id ? 'Generating Action Plan...' : 'Suggest Actionable Fix (AI)'}
-                              </button>
-                            )}
+                        {suggestions[report._id] ? (
+                          <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 max-h-[200px] overflow-y-auto custom-scrollbar">
+                            <div className="flex items-center gap-2 mb-2 text-teal-600 font-bold uppercase text-[11px] tracking-wider sticky top-0 bg-slate-50/90 backdrop-blur pb-1">
+                              <Cpu size={14} /> NVIDIA NIM Synthetic Response
+                            </div>
+                            <p className="text-sm text-slate-700 whitespace-pre-wrap">{suggestions[report._id]}</p>
                           </div>
-                        )}
-                        {report.status === 'Resolved' && report.resolvedAt && (
-                          <div className="mt-4 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-400 text-sm font-bold flex items-center gap-2">
-                            <CheckCircle size={16} /> Resolved {timeAgo(report.resolvedAt)}
-                          </div>
+                        ) : (
+                          <button
+                            onClick={() => handleGenerateAISuggestion(report._id)}
+                            disabled={generatingFor === report._id}
+                            className="flex items-center gap-2 px-3 py-1.5 text-xs font-bold text-teal-700 bg-teal-50 border border-teal-100 rounded-md hover:bg-teal-100 transition-colors disabled:opacity-50"
+                          >
+                            <Cpu size={14} /> {generatingFor === report._id ? 'Generating Action Plan...' : 'Suggest Actionable Fix (AI)'}
+                          </button>
                         )}
                       </div>
                     </div>
-                    {report.status === 'Active' && (
-                      <button
-                        onClick={() => handleResolveReport(report._id)}
-                        className="flex-shrink-0 flex items-center gap-2 px-6 py-3 font-bold text-white bg-slate-700 rounded-xl hover:bg-emerald-600 hover:shadow-[0_0_15px_rgba(5,150,105,0.4)] transition-all"
-                      >
-                        <CheckCircle size={20} /> Mark Resolved
-                      </button>
-                    )}
+                    <button
+                      onClick={() => handleResolveReport(report._id)}
+                      className="shrink-0 flex items-center gap-2 px-4 py-2 font-bold text-white bg-teal-600 rounded-lg hover:bg-teal-700 transition-colors text-sm shadow-sm"
+                    >
+                      <CheckCircle size={16} /> Mark Resolved
+                    </button>
                   </div>
-                </div>
-              ))
-            )
+                ))
+              )}
+            </div>
           )}
 
-          {activeTab === 'Demands' && (
-            roleRequests.length === 0 ? (
-              <div className="py-20 text-center border-2 border-dashed border-slate-700 rounded-3xl">
-                <Users size={48} className="mx-auto mb-4 text-slate-600" />
-                <h3 className="text-xl font-bold text-slate-400">No pending access requests.</h3>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {roleRequests.map(req => (
-                  <div key={req._id} className="p-6 bg-slate-800 rounded-2xl border border-indigo-500/30 shadow-lg shadow-indigo-500/10 flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center justify-between mb-4">
-                        <span className="px-3 py-1 text-xs font-bold uppercase bg-indigo-500/20 text-indigo-400 rounded-full">
-                          {req.requestedRole} Request
-                        </span>
-                        <span className="text-sm font-semibold text-slate-400">{timeAgo(req.createdAt)}</span>
+          {/* Resolution History Tab */}
+          {activeTab === 'History' && (
+            <div className="max-w-4xl bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+              {historyReports.length === 0 ? (
+                <div className="py-20 text-center">
+                  <Clock size={48} className="mx-auto mb-4 text-slate-300" />
+                  <h3 className="text-base font-semibold text-slate-500">No resolution history found.</h3>
+                </div>
+              ) : (
+                <div className="divide-y divide-slate-100">
+                  {historyReports.map(report => (
+                    <div key={report._id} className="p-5 hover:bg-slate-50 transition-colors flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                      <div>
+                        <div className="flex items-center gap-3 mb-1">
+                          <h4 className="text-sm font-semibold text-slate-900">[{report.component}] Failure</h4>
+                          <span className="text-[11px] font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{report.instituteName}</span>
+                        </div>
+                        <p className="text-xs text-slate-500 line-clamp-1">{report.description}</p>
                       </div>
-                      <h3 className="text-lg font-bold text-white truncate" title={req.clerkUserEmail}>{req.clerkUserEmail}</h3>
-                      <div className="mt-4 p-3 bg-slate-900 rounded-lg border border-slate-700">
-                        <p className="text-xs font-bold text-slate-500 uppercase">Target Facility</p>
-                        <p className="text-sm font-semibold text-slate-300 mt-1">{req.requestedInstituteId?.name || 'Unknown'}</p>
-                        <p className="text-xs text-slate-500">{req.requestedInstituteId?.district || ''}</p>
+                      <div className="shrink-0 flex items-center gap-2 text-xs font-medium text-teal-600 bg-teal-50 px-3 py-1.5 rounded-lg border border-teal-100">
+                        <CheckCircle size={14} /> Resolved {timeAgo(report.resolvedAt)}
                       </div>
                     </div>
-                    <div className="mt-6 flex gap-3">
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Access Demands Tab */}
+          {activeTab === 'Demands' && (
+            <div className="space-y-4 max-w-4xl">
+              {roleRequests.length === 0 ? (
+                <div className="py-20 text-center border-2 border-dashed border-slate-200 rounded-3xl bg-white/40 backdrop-blur-sm">
+                  <Users size={48} className="mx-auto mb-4 text-slate-300" />
+                  <h3 className="text-lg font-semibold text-slate-600">No pending access requests.</h3>
+                </div>
+              ) : (
+                roleRequests.map(req => (
+                  <div key={req._id} className="p-5 bg-white/70 backdrop-blur-md border border-slate-200 shadow-[0_1px_3px_rgba(0,0,0,0.06)] rounded-xl flex flex-col sm:flex-row items-center justify-between gap-6">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className="px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider bg-teal-50 text-teal-700 border border-teal-100 rounded-md">
+                          {req.requestedRole} Request
+                        </span>
+                        <span className="text-xs font-medium text-slate-400">{timeAgo(req.createdAt)}</span>
+                      </div>
+                      <h3 className="text-sm font-semibold text-slate-900 truncate mb-1" title={req.clerkUserEmail}>{req.clerkUserEmail}</h3>
+                      <div className="text-xs text-slate-500">
+                        Target Facility: <span className="font-semibold text-slate-700">{req.requestedInstituteId?.name || 'Unknown'}</span> ({req.requestedInstituteId?.district || 'Unknown District'})
+                      </div>
+                    </div>
+                    <div className="shrink-0 flex gap-2 min-w-[160px]">
                       <button
                         onClick={() => handleResolveRequest(req._id, 'approved')}
-                        className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold rounded-lg transition-colors"
+                        className="flex-1 py-1.5 px-3 bg-teal-600 hover:bg-teal-700 text-white text-sm font-semibold rounded-md transition-colors shadow-sm"
                       >
                         Approve
                       </button>
                       <button
                         onClick={() => handleResolveRequest(req._id, 'rejected')}
-                        className="flex-1 py-2 bg-slate-700 hover:bg-rose-600 text-white text-sm font-bold rounded-lg transition-colors"
+                        className="flex-1 py-1.5 px-3 bg-white hover:bg-red-50 border border-red-200 text-red-600 text-sm font-semibold rounded-md transition-colors shadow-sm"
                       >
                         Reject
                       </button>
                     </div>
                   </div>
-                ))}
-              </div>
-            )
+                ))
+              )}
+            </div>
           )}
 
+          {/* Manage Data Tab */}
+          {activeTab === 'Manage Data' && (
+            <div className="max-w-5xl">
+              <UpdateCentre />
+            </div>
+          )}
+
+          {/* Audit Logs Tab */}
           {activeTab === 'Logs' && (
-            auditLogs.length === 0 ? (
-              <div className="py-20 text-center border-2 border-dashed border-slate-700 rounded-3xl">
-                <List size={48} className="mx-auto mb-4 text-slate-600" />
-                <h3 className="text-xl font-bold text-slate-400">No audit logs available.</h3>
-              </div>
-            ) : (
-              <div className="bg-slate-800 border border-slate-700 rounded-2xl overflow-hidden shadow-xl">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-sm text-slate-300">
-                    <thead className="bg-slate-900/50 text-slate-400 font-bold uppercase text-xs">
+            <div className="max-w-5xl">
+              {auditLogs.length === 0 ? (
+                <div className="py-20 text-center border-2 border-dashed border-slate-200 rounded-3xl bg-white/40 backdrop-blur-sm">
+                  <List size={48} className="mx-auto mb-4 text-slate-300" />
+                  <h3 className="text-lg font-semibold text-slate-600">No audit logs available.</h3>
+                </div>
+              ) : (
+                <div className="bg-white border border-slate-200 rounded-xl overflow-x-auto shadow-sm">
+                  <table className="w-full text-left text-sm text-slate-600 table-fixed min-w-[600px]">
+                    <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold text-xs uppercase tracking-wider">
                       <tr>
-                        <th className="px-6 py-4">Timestamp</th>
-                        <th className="px-6 py-4">Action</th>
-                        <th className="px-6 py-4">Target Collection</th>
-                        <th className="px-6 py-4">Actor ID</th>
+                        <th className="px-5 py-3 w-40">Timestamp</th>
+                        <th className="px-5 py-3 w-32">Action</th>
+                        <th className="px-5 py-3 w-48">Collection</th>
+                        <th className="px-5 py-3">Actor ID</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-700/50">
-                      {auditLogs.map(log => (
-                        <tr key={log._id} className="hover:bg-slate-700/20 transition-colors">
-                          <td className="px-6 py-4 font-mono text-xs">{new Date(log.timestamp).toLocaleString()}</td>
-                          <td className="px-6 py-4">
-                            <span className={`px-2 py-1 text-xs font-bold rounded-md ${
-                              log.action === 'CREATE' ? 'bg-emerald-500/20 text-emerald-400' :
-                              log.action === 'UPDATE' ? 'bg-blue-500/20 text-blue-400' :
-                              log.action === 'RESOLVE' ? 'bg-indigo-500/20 text-indigo-400' :
-                              'bg-slate-500/20 text-slate-400'
+                    <tbody className="divide-y divide-slate-100">
+                      {auditLogs.map((log, i) => (
+                        <tr key={log._id} className={i % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}>
+                          <td className="px-5 py-3 font-mono text-[11px] text-slate-500">{new Date(log.timestamp).toLocaleString()}</td>
+                          <td className="px-5 py-3">
+                            <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-md border ${
+                              log.action === 'CREATE' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
+                              log.action === 'UPDATE' ? 'bg-blue-50 text-blue-700 border-blue-100' :
+                              log.action === 'RESOLVE' ? 'bg-indigo-50 text-indigo-700 border-indigo-100' :
+                              'bg-slate-100 text-slate-600 border-slate-200'
                             }`}>
                               {log.action}
                             </span>
                           </td>
-                          <td className="px-6 py-4 font-semibold text-slate-200">{log.targetCollection}</td>
-                          <td className="px-6 py-4 font-mono text-xs text-slate-500 truncate max-w-[150px]" title={log.clerkUserId}>
+                          <td className="px-5 py-3 font-medium text-slate-700 text-xs">{log.targetCollection}</td>
+                          <td className="px-5 py-3 font-mono text-[11px] text-slate-400 truncate" title={log.clerkUserId}>
                             {log.clerkUserId}
                           </td>
                         </tr>
@@ -358,9 +396,10 @@ export default function AuthorityDashboard() {
                     </tbody>
                   </table>
                 </div>
-              </div>
-            )
+              )}
+            </div>
           )}
+
         </div>
       </div>
     </div>

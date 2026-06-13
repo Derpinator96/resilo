@@ -70,7 +70,7 @@ export default function AuditStatus() {
           <span className="text-[11px] font-bold text-[#E8581A] uppercase tracking-widest border-b border-dotted border-[#B0C0B0] pb-1 block w-fit mb-6">
             FIELD AUDIT STATUS
           </span>
-          <h2 className="text-4xl md:text-5xl font-light text-slate-900 tracking-tight leading-tight mb-6">
+          <h2 className="text-4xl md:text-5xl font-light text-[#1C1C1C] tracking-tight leading-tight mb-6">
             6 of 40 Audits Complete
           </h2>
           <p className="text-lg text-slate-600 font-medium mb-10 max-w-md">

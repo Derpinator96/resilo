@@ -74,7 +74,7 @@ export default function Navbar() {
 
         <button
           onClick={() => navigate('/signUp')}
-          className="flex items-center justify-between gap-3 pl-5 pr-1 py-1 rounded-full bg-[#C9DC6A] hover:bg-[#B8CD59] transition-transform active:scale-95 text-slate-900 font-bold text-sm shrink-0"
+          className="flex items-center justify-between gap-3 pl-5 pr-1 py-1 rounded-full bg-[#C9DC6A] hover:bg-[#B8CD59] transition-transform active:scale-95 text-[#1C1C1C] font-bold text-sm shrink-0"
         >
           Sign Up
           <span className="w-8 h-8 rounded-full bg-[#1A3028] flex items-center justify-center">

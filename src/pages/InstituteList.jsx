@@ -1,26 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, MapPin } from 'lucide-react'
-
-const generateStructuralGrid = (text) => {
-  const cleanText = (text || 'FACILITY').replace(/[^a-zA-Z0-9 ]/g, '').substring(0, 12).toUpperCase()
-  
-  const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120">
-      <defs>
-        <pattern id="subGrid" width="24" height="24" patternUnits="userSpaceOnUse">
-          <path d="M 24 0 L 0 0 0 24" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/>
-        </pattern>
-      </defs>
-      <rect width="120" height="120" fill="url(#subGrid)"/>
-      <path d="M 120 0 L 0 0 0 120" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
-      <circle cx="120" cy="120" r="1.5" fill="rgba(255,255,255,0.3)"/>
-      <circle cx="0" cy="0" r="1.5" fill="rgba(255,255,255,0.3)"/>
-      <text x="6" y="16" font-family="ui-monospace, SFMono-Regular, monospace" font-size="9" font-weight="700" fill="rgba(255,255,255,0.25)" letter-spacing="2">${cleanText}</text>
-    </svg>
-  `
-  return `url("data:image/svg+xml;utf8,${encodeURIComponent(svg.trim())}")`
-}
+import { ArrowLeft, MapPin, ChevronRight } from 'lucide-react'
 
 export default function InstituteList() {
   const { district, type } = useParams()
@@ -58,84 +38,92 @@ export default function InstituteList() {
         name: words.slice(1).map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' '),
       }
     }
+    // Check if the name already has a prefix like "CIVIL HOSPITAL"
+    if (rawName.toUpperCase().startsWith("CIVIL HOSPITAL")) {
+      return { prefix: "CIVIL HOSPITAL", name: rawName.substring(14).trim() }
+    }
     return { prefix: type?.toUpperCase() || 'CENTRE', name: rawName }
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden px-4 py-8 lg:px-8 pb-32">
-      <div
-        className="absolute inset-0 -z-10"
-        style={{
-          background: `linear-gradient(135deg, #7C3AED 0%, #A855F7 18%, #C084FC 35%, #D946EF 52%, #EC4899 72%, #F9A8D4 88%, #FFF7FC 100%)`,
-        }}
-      />
-      <div className="fixed top-[-10rem] left-[-10rem] w-[35rem] h-[35rem] rounded-full bg-violet-600/30 blur-[150px] pointer-events-none" />
-      <div className="fixed bottom-[-10rem] right-[-10rem] w-[35rem] h-[35rem] rounded-full bg-fuchsia-600/30 blur-[150px] pointer-events-none" />
+    <div className="min-h-screen bg-slate-50 font-['Inter']">
+      <div className="max-w-[1200px] mx-auto px-4 lg:px-8 py-8 pb-32">
+        
+        {/* Page Header block */}
+        <header className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mb-8">
 
-      <div className="relative z-10 max-w-6xl mx-auto">
-        <button
-          onClick={() => navigate('/dashboard')}
-          className="flex items-center gap-2 mb-8 text-sm font-bold text-purple-950 hover:text-black transition-colors"
-        >
-          <ArrowLeft size={18} strokeWidth={2.5} />
-          Back to Dashboard
-        </button>
-
-        <header className="mb-12">
-          <div className="flex items-center gap-2 mb-3 text-sm font-black tracking-[0.2em] uppercase text-purple-950">
-            <MapPin size={18} strokeWidth={2.5} />
+          
+          <div className="flex items-center gap-2 mb-2 text-[12px] font-semibold tracking-[0.12em] uppercase text-[#0D9488]">
+            <MapPin size={14} />
             {district} District
           </div>
-          <h1 className="text-5xl font-black tracking-tight text-black">
-            {type} <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-950 via-fuchsia-950 to-pink-900">Facilities</span>
+          
+          <h1 className="text-[36px] font-extrabold text-[#0A192F] mb-1">
+            Solar Centre Facilities
           </h1>
-          <p className="mt-3 text-lg font-medium text-purple-950/80">
+          
+          <p className="text-[15px] font-normal text-slate-500">
             Select a facility to view its high-density resilience profile & AI Forecast.
           </p>
         </header>
 
+        {/* Loading / Error States */}
         {loading ? (
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 animate-pulse">
-            {[...Array(8)].map((_, i) => (
-              <div key={i} className="aspect-[5/4] rounded-3xl bg-white/30 backdrop-blur-2xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.15)]" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="h-40 bg-white border border-slate-200 rounded-xl shadow-sm animate-pulse" />
             ))}
           </div>
         ) : error ? (
-          <div className="p-4 rounded-2xl bg-white/30 backdrop-blur-2xl border border-red-400/60 text-red-950 font-bold shadow-[0_8px_32px_rgba(0,0,0,0.15)]">
+          <div className="p-6 rounded-xl bg-white border border-red-200 text-red-600 font-medium shadow-sm">
             {error}
           </div>
         ) : data.length === 0 ? (
-          <div className="p-12 text-center rounded-3xl bg-white/30 backdrop-blur-2xl border border-white/50 text-purple-950 font-bold shadow-[0_8px_32px_rgba(0,0,0,0.15)]">
+          <div className="p-12 text-center rounded-xl bg-white border border-slate-200 text-slate-500 font-medium shadow-sm">
             No facilities found matching these criteria.
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          /* Facility Cards Grid */
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
             {data.map((inst) => {
               const { prefix, name } = parseFacilityName(inst.name)
               return (
                 <button
                   key={inst._id}
-                  onClick={() => navigate(`/institute/${inst._id}`, { state: inst })}
-                  className="group relative flex flex-col items-center justify-center p-5 text-center overflow-hidden aspect-[5/4] bg-white/30 backdrop-blur-2xl border border-white/50 rounded-3xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] transition-all duration-300 hover:bg-white/40 hover:border-white/80 hover:shadow-[0_12px_40px_rgba(0,0,0,0.2)] hover:-translate-y-1 hover:scale-[1.03]"
+                  onClick={() => navigate(`/institute/${inst._id}`)}
+                  className="bg-white border border-slate-200 rounded-xl shadow-sm px-6 py-5 hover:border-[#0D9488] hover:shadow-[0_4px_12px_rgba(13,148,136,0.12)] transition-all duration-200 ease-out cursor-pointer text-left flex flex-col justify-between"
                 >
-                  <div
-                    className="absolute inset-0 opacity-50 transition-all duration-500 group-hover:opacity-100 group-hover:scale-105"
-                    style={{
-                      backgroundImage: generateStructuralGrid(inst.name),
-                      backgroundSize: '120px 120px',
-                      backgroundPosition: 'center',
-                      maskImage: 'radial-gradient(circle at center, transparent 35%, black 100%)',
-                      WebkitMaskImage: 'radial-gradient(circle at center, transparent 35%, black 100%)'
-                    }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent" />
-                  <div className="relative z-10">
-                    <h3 className="text-4xl font-black tracking-tight text-black">{prefix}</h3>
-                    {name && (
-                      <p className="mt-2 text-sm font-bold text-purple-950/80 transition-colors group-hover:text-black">
-                        {name}
-                      </p>
-                    )}
+                  {/* Row 1 */}
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="bg-[#F0FDFA] text-[#0D9488] font-semibold text-[11px] uppercase tracking-wide px-2.5 py-1 rounded-full">
+                      {prefix}
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      <span className="text-slate-500 text-[12px] font-medium">Active</span>
+                    </div>
+                  </div>
+
+                  {/* Row 2 */}
+                  <div className="mb-4">
+                    <h3 className="font-bold text-[18px] text-[#0A192F] leading-tight mb-1">
+                      {name || prefix}
+                    </h3>
+                    <p className="font-normal text-[13px] text-slate-400">
+                      {inst.district}
+                    </p>
+                  </div>
+
+                  {/* Row 3 */}
+                  <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[#0A192F] text-[12px] font-medium">Solar System</span>
+                      <span className="w-1 h-1 rounded-full bg-slate-300" />
+                      <span className="text-[#0D9488] text-[12px] font-medium">Live</span>
+                      <span className="w-1 h-1 rounded-full bg-slate-300" />
+                      <span className="text-slate-400 text-[12px]">Pending</span>
+                    </div>
+                    <ChevronRight size={16} className="text-slate-300" />
                   </div>
                 </button>
               )

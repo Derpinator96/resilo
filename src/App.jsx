@@ -1,6 +1,8 @@
-import { Routes, Route, Link, useLocation } from 'react-router-dom'
-import { Sparkles, ShieldAlert } from 'lucide-react'
+import { Routes, Route, useLocation } from 'react-router-dom'
+import { Sparkles } from 'lucide-react'
 import { SignedIn, SignedOut, UserButton, SignInButton, SignUpButton, useUser } from '@clerk/clerk-react'
+import InstitutionalHeader from './components/InstitutionalHeader'
+import logoDark from './assets/logo-dark.svg'
 import LandingPage from './pages/LandingPage'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
@@ -11,37 +13,22 @@ import AuthorityDashboard from './pages/AuthorityDashboard'
 import AIChat from './pages/AIChat'
 import SolarForecast from './pages/SolarForecast'
 import AccessRequestForm from './components/AccessRequestForm'
+import AppNavbar from './components/AppNavbar'
+import ApiDocs from './pages/ApiDocs'
+import { useRole } from './hooks/useRole'
 
 function GlobalLayout({ children }) {
   const location = useLocation()
   const isLoginPage = location.pathname === '/' || location.pathname === '/signUp'
-  const { user } = useUser()
-  const role = user?.publicMetadata?.role || 'community'
-  const isAuthority = role === 'admin' || role === 'super_admin'
+  const { role, isAuthority } = useRole()
 
   return (
     <div className="relative min-h-screen bg-gray-50">
-      {/* Clerk Auth Header */}
+      <InstitutionalHeader />
+      <AppNavbar />
+      {/* Clerk Auth — just the user avatar, positioned inside the navbar row */}
       {!isLoginPage && (
-        <div className="absolute top-4 right-6 z-50 flex items-center gap-4">
-          {isAuthority && location.pathname !== '/authority' && (
-            <Link 
-              to="/authority" 
-              className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-700 bg-white border-2 border-slate-200 rounded-lg hover:border-slate-300 hover:bg-slate-50 transition-all shadow-sm"
-            >
-              <ShieldAlert size={16} className="text-rose-500" />
-              Authority Portal
-            </Link>
-          )}
-          {!isLoginPage && location.pathname !== '/sanitation' && (
-            <Link
-              to="/sanitation"
-              className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-white shadow-sm bg-slate-900 rounded-lg hover:bg-slate-800 transition-all"
-            >
-              <Sparkles size={16} className="text-blue-400" />
-              <span className="hidden sm:inline">AI Sanitation Scan</span>
-            </Link>
-          )}
+        <div className="fixed top-[36px] right-6 z-50 flex items-center h-[56px]">
           <SignedOut>
             <SignInButton mode="modal">
               <button className="px-4 py-2 text-sm font-bold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700">Sign In</button>
@@ -81,6 +68,7 @@ function App() {
         <Route path="/authority" element={<AuthorityDashboard />} />
         <Route path="/AIChat" element={<AIChat />} />
         <Route path="/solar-forecast" element={<SolarForecast />} />
+        <Route path="/api-docs" element={<ApiDocs />} />
       </Routes>
     </GlobalLayout>
   )

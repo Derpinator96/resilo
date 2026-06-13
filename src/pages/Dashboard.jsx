@@ -17,14 +17,7 @@ const districtCoords = {
   "Surajpur": [23.22, 82.87], "Surguja": [23.12, 83.19], "Khairagarh-Chhuikhadan-Gandai": [21.42, 81.05]
 }
 
-const MeshBackground = () => (
-  <>
-    <div className="fixed inset-0 z-0 bg-slate-50 pointer-events-none" />
-    <div className="fixed top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-blue-200/50 rounded-full blur-[120px] pointer-events-none z-0" />
-    <div className="fixed bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] bg-cyan-200/30 rounded-full blur-[150px] pointer-events-none z-0" />
-    <div className="fixed top-[40%] left-[20%] w-[40vw] h-[40vw] bg-blue-100/40 rounded-full blur-[100px] pointer-events-none z-0" />
-  </>
-)
+import MeshBackground from '../components/MeshBackground'
 
 export default function Dashboard() {
   const [districts, setDistricts] = useState([])
@@ -65,11 +58,11 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="relative min-h-screen px-4 py-8 overflow-hidden lg:px-8 pb-32">
+    <div className="relative min-h-screen px-4 overflow-hidden lg:px-8 pb-32">
       <MeshBackground />
 
-      <div className="relative z-10 max-w-6xl mx-auto py-16">
-        <header className="text-center mb-20 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="relative z-10 max-w-6xl mx-auto pt-[92px] pb-16">
+        <header className="text-center mb-20">
           <div className="inline-flex items-center px-4 py-1.5 mb-8 text-[11px] font-black uppercase tracking-[0.25em] text-blue-800 bg-white/60 backdrop-blur-md border border-blue-100 rounded-full shadow-sm">
              Climatathon 2024
           </div>
@@ -87,12 +80,12 @@ export default function Dashboard() {
               className="w-full flex items-center justify-between py-6 px-10 text-xl font-bold bg-white/70 backdrop-blur-lg border border-white shadow-xl shadow-blue-900/5 rounded-[2.5rem] focus:outline-none hover:bg-white hover:border-blue-200 hover:shadow-2xl hover:shadow-blue-500/15 transition-all duration-300"
             >
               <div className="flex items-center gap-4">
-                <MapPin className={`w-6 h-6 ${selectedDistrict ? 'text-blue-600' : 'text-slate-400'}`} />
-                <span className={selectedDistrict ? 'text-slate-800' : 'text-slate-400'}>
+                <MapPin className={`w-6 h-6 text-slate-800`} />
+                <span className="text-slate-800 font-bold">
                   {selectedDistrict || "Select District"}
                 </span>
               </div>
-              <ChevronDown className={`w-6 h-6 text-slate-400 transition-transform duration-300 ${isOpen ? 'rotate-180 text-blue-600' : ''}`} />
+              <ChevronDown className={`w-6 h-6 text-slate-800 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {/* Dropdown Menu */}
@@ -114,7 +107,7 @@ export default function Dashboard() {
         </header>
 
         {mapSrc && (
-          <div className="bg-white/70 backdrop-blur-lg p-4 border border-white shadow-xl shadow-blue-900/5 rounded-[4rem] overflow-hidden hover:shadow-2xl hover:shadow-blue-500/10 transition-shadow duration-500 max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-8 duration-700">
+          <div className="bg-white/70 backdrop-blur-lg p-4 border border-white shadow-xl shadow-blue-900/5 rounded-[4rem] overflow-hidden max-w-4xl mx-auto">
             <div className="px-8 py-8 border-b border-slate-100 mb-2">
               <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Sector Climate Map</h2>
               <p className="text-blue-600 font-bold text-xs uppercase tracking-widest mt-2">State Status</p>

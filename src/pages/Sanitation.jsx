@@ -59,15 +59,8 @@ export default function Sanitation() {
   }
 
   return (
-    <div className="min-h-screen px-4 py-8 bg-gray-50 lg:px-8">
+    <div className="min-h-screen px-4 pt-[92px] pb-8 bg-slate-50 lg:px-8">
       <div className="max-w-xl mx-auto">
-        <button
-          onClick={() => navigate('/dashboard')}
-          className="flex items-center gap-2 mb-8 text-sm font-medium text-gray-500 transition-colors hover:text-slate-800"
-        >
-          <ArrowLeft size={18} />
-          Back to Dashboard
-        </button>
 
         <header className="mb-8">
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">Sanitation Inspection</h1>
@@ -87,7 +80,7 @@ export default function Sanitation() {
           {scanState === 'idle' && (
             <button
               onClick={handleUploadClick}
-              className="flex flex-col items-center justify-center w-full p-10 transition-colors bg-white border-2 border-dashed border-sky-200 rounded-3xl hover:bg-sky-50 active:scale-[0.98]"
+              className="flex flex-col items-center justify-center w-full p-10 transition-colors bg-slate-50/70 backdrop-blur-md border-2 border-dashed border-sky-200 rounded-3xl hover:bg-sky-50 active:scale-[0.98]"
             >
               <div className="p-4 mb-4 rounded-full bg-sky-100 text-sky-600">
                 <Camera size={32} />
@@ -103,7 +96,7 @@ export default function Sanitation() {
           )}
 
           {scanState === 'scanning' && (
-            <div className="flex flex-col items-center justify-center w-full p-16 bg-white border border-gray-100 shadow-sm rounded-3xl animate-pulse">
+            <div className="flex flex-col items-center justify-center w-full p-16 bg-slate-50/70 backdrop-blur-md border border-gray-100 shadow-sm rounded-3xl animate-pulse">
               <div className="w-16 h-16 mb-6 border-4 border-gray-200 rounded-full border-t-blue-600 animate-spin"></div>
               <h3 className="text-xl font-bold text-slate-800">Analyzing Photo...</h3>
               <p className="mt-2 text-sm text-gray-500">Running GPT-4o Vision model</p>
@@ -111,7 +104,7 @@ export default function Sanitation() {
           )}
 
           {scanState === 'error' && (
-            <div className="flex flex-col items-center justify-center w-full p-10 bg-white border border-red-200 shadow-sm rounded-3xl">
+            <div className="flex flex-col items-center justify-center w-full p-10 bg-slate-50/70 backdrop-blur-md border border-red-200 shadow-sm rounded-3xl">
               <AlertTriangle size={48} className="mb-4 text-red-500" />
               <h3 className="text-xl font-bold text-slate-800">Analysis Failed</h3>
               <p className="mt-2 text-sm text-center text-red-600">{errorMessage}</p>
@@ -122,7 +115,7 @@ export default function Sanitation() {
           )}
 
           {scanState === 'complete' && aiResult && (
-            <div className={`p-8 bg-white border shadow-lg rounded-3xl lg:p-10 border-t-8 ${aiResult.hygieneStatus.toLowerCase().includes('good') || aiResult.hygieneStatus.toLowerCase().includes('clean')
+            <div className={`p-8 bg-slate-50/70 backdrop-blur-md border shadow-lg rounded-3xl lg:p-10 border-t-8 ${aiResult.hygieneStatus.toLowerCase().includes('good') || aiResult.hygieneStatus.toLowerCase().includes('clean')
               ? 'border-t-green-500 border-green-200'
               : 'border-t-red-600 border-red-200 bg-red-50'
               }`}>
@@ -138,17 +131,17 @@ export default function Sanitation() {
                     <h3 className="text-2xl font-bold text-slate-900">Risk Profile</h3>
                   </div>
 
-                  <div className="p-4 bg-white border shadow-sm rounded-xl mb-4">
+                  <div className="p-4 bg-slate-50/70 backdrop-blur-md border shadow-sm rounded-xl mb-4">
                     <p className="text-xs font-bold tracking-wider text-gray-500 uppercase mb-1">General Hygiene Status</p>
                     <p className="text-lg font-semibold text-slate-800">{aiResult.hygieneStatus}</p>
                   </div>
 
-                  <div className="p-4 bg-white border shadow-sm rounded-xl mb-4">
+                  <div className="p-4 bg-slate-50/70 backdrop-blur-md border shadow-sm rounded-xl mb-4">
                     <p className="text-xs font-bold tracking-wider text-gray-500 uppercase mb-3">Visible Contaminants</p>
                     {aiResult.visibleContaminants && aiResult.visibleContaminants.length > 0 ? (
                       <div className="flex flex-wrap gap-2">
                         {aiResult.visibleContaminants.map((item, idx) => (
-                          <span key={idx} className="px-3 py-1 text-sm font-medium text-amber-800 bg-amber-100 rounded-lg">
+                          <span key={idx} className="px-3 py-1 text-sm font-medium text-[#1A1A1A] bg-amber-100 rounded-lg">
                             {item}
                           </span>
                         ))}
@@ -158,12 +151,12 @@ export default function Sanitation() {
                     )}
                   </div>
 
-                  <div className="p-4 bg-white border shadow-sm rounded-xl mb-6">
+                  <div className="p-4 bg-slate-50/70 backdrop-blur-md border shadow-sm rounded-xl mb-6">
                     <p className="text-xs font-bold tracking-wider text-gray-500 uppercase mb-3">Potential Outbreaks</p>
                     {aiResult.potentialDiseases && aiResult.potentialDiseases.length > 0 ? (
                       <ul className="space-y-2">
                         {aiResult.potentialDiseases.map((disease, idx) => (
-                          <li key={idx} className="flex items-start gap-2 text-sm font-bold text-red-700">
+                          <li key={idx} className="flex items-start gap-2 text-sm font-bold text-[#1A1A1A]">
                             <div className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 shrink-0"></div>
                             {disease}
                           </li>

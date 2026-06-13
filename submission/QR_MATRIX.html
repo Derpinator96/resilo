@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resilo — Evaluation QR Matrix</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
+            margin: 0;
+            padding: 40px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+        }
+        .header p {
+            color: #64748b;
+            font-size: 1.1rem;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        .qr-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+        .qr-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: #1e293b;
+        }
+        .qrcode {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+        .qr-link {
+            font-size: 0.85rem;
+            color: #3b82f6;
+            word-break: break-all;
+            text-decoration: none;
+        }
+        .qr-link:hover {
+            text-decoration: underline;
+        }
+        .warning-banner {
+            background-color: #fef2f2;
+            border-left: 6px solid #ef4444;
+            color: #991b1b;
+            padding: 20px;
+            border-radius: 0 8px 8px 0;
+            font-weight: 600;
+            margin-top: 40px;
+        }
+    </style>
+    <!-- Include qrcode.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Climatathon 2026 Evaluation Matrix</h1>
+            <p>Team Luminova | Project Resilo</p>
+        </div>
+
+        <div class="grid">
+            <!-- QR 1 -->
+            <div class="qr-card">
+                <div class="qr-title">Live Demo URL</div>
+                <div id="qr1" class="qrcode"></div>
+                <a href="https://resilo.app" class="qr-link">https://resilo.app</a>
+            </div>
+            
+            <!-- QR 2 -->
+            <div class="qr-card">
+                <div class="qr-title">Final Presentation</div>
+                <div id="qr2" class="qrcode"></div>
+                <a href="https://github.com/luminova/resilo/tree/main/submission/01_Presentation" class="qr-link">submission/01_Presentation/</a>
+            </div>
+
+            <!-- QR 3 -->
+            <div class="qr-card">
+                <div class="qr-title">GitHub Repository</div>
+                <div id="qr3" class="qrcode"></div>
+                <a href="https://github.com/luminova/resilo" class="qr-link">https://github.com/luminova/resilo</a>
+            </div>
+
+            <!-- QR 4 -->
+            <div class="qr-card">
+                <div class="qr-title">API Documentation</div>
+                <div id="qr4" class="qrcode"></div>
+                <a href="https://resilo.app/api-docs" class="qr-link">https://resilo.app/api-docs</a>
+            </div>
+
+            <!-- QR 5 -->
+            <div class="qr-card">
+                <div class="qr-title">Standardized Concept Note</div>
+                <div id="qr5" class="qrcode"></div>
+                <a href="https://github.com/luminova/resilo/tree/main/submission/02_Concept_Note" class="qr-link">submission/02_Concept_Note/</a>
+            </div>
+        </div>
+
+        <div class="warning-banner">
+            WARNING: Update all placeholder URLs before submission. Broken QR codes result in immediate failure of that evaluation parameter.
+        </div>
+    </div>
+
+    <script>
+        // Generate QR codes on load
+        window.onload = function() {
+            new QRCode(document.getElementById("qr1"), { text: "https://resilo.app", width: 150, height: 150 });
+            new QRCode(document.getElementById("qr2"), { text: "https://github.com/luminova/resilo/tree/main/submission/01_Presentation", width: 150, height: 150 });
+            new QRCode(document.getElementById("qr3"), { text: "https://github.com/luminova/resilo", width: 150, height: 150 });
+            new QRCode(document.getElementById("qr4"), { text: "https://resilo.app/api-docs", width: 150, height: 150 });
+            new QRCode(document.getElementById("qr5"), { text: "https://github.com/luminova/resilo/tree/main/submission/02_Concept_Note", width: 150, height: 150 });
+        };
+    </script>
+</body>
+</html>

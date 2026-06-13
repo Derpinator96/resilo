@@ -71,7 +71,7 @@ export default function StatBento() {
             <div className="text-[100px] leading-none font-[200] text-transparent" style={{ WebkitTextStroke: '1.5px #1A2020' }}>
               {facilitiesCount}
             </div>
-            <p className="text-slate-500 font-medium text-lg mt-4 max-w-xs">
+            <p className="text-[#F0F5F0]0 font-medium text-lg mt-4 max-w-xs">
               Active facilities streaming real-time IoT metrics to the Resilo dashboard.
             </p>
           </div>

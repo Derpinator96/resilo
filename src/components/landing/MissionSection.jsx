@@ -30,7 +30,7 @@ export default function MissionSection() {
           <span className="text-[11px] font-bold text-[#E8581A] uppercase tracking-widest border-b border-dotted border-[#B0C0B0] pb-1 block w-fit mb-6">
             The Mission
           </span>
-          <h2 className="text-4xl md:text-5xl font-light text-slate-900 tracking-tight leading-tight">
+          <h2 className="text-4xl md:text-5xl font-light text-[#1C1C1C] tracking-tight leading-tight">
             Bridging the gap between energy reliability and healthcare access.
           </h2>
         </motion.div>

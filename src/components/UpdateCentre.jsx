@@ -67,11 +67,11 @@ const generateLast12Months = (year, month) => {
 };
 
 const baseInput =
-  'block w-full rounded-md border border-slate-600 bg-slate-700 px-3 py-2 text-sm text-slate-100 shadow-sm focus:border-rose-500 focus:outline-none focus:ring-1 focus:ring-rose-500 no-spinner';
+  'block w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-100 no-spinner';
 const smallInput =
-  'block w-full rounded-md border border-slate-600 bg-slate-700 px-2 py-1.5 text-xs text-slate-100 shadow-sm focus:border-rose-500 focus:outline-none focus:ring-1 focus:ring-rose-500 no-spinner';
+  'block w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-100 no-spinner';
 const fileInputClass =
-  'block w-full cursor-pointer rounded-md border border-dashed border-slate-600 bg-slate-700 px-3 py-2 text-sm text-slate-300 file:mr-3 file:rounded-md file:border-0 file:bg-rose-600 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white hover:file:bg-slate-900';
+  'block w-full cursor-pointer rounded-md border border-dashed border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500 file:mr-3 file:rounded-md file:border-0 file:bg-slate-800 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white hover:file:bg-slate-900 hover:border-teal-500 hover:bg-teal-50';
 
 
 export default function UpdateCentre() {
@@ -107,12 +107,12 @@ export default function UpdateCentre() {
     const fetchCentres = async () => {
       try {
         const token = await getToken();
-        const res = await fetch(`/api/centredata/${selectedDistrict}`, {
+        const res = await fetch(`/api/centredata/${encodeURIComponent(selectedDistrict)}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (!res.ok) throw new Error("Failed to fetch centres");
         const json = await res.json();
-        const list = Array.isArray(json.data) ? json.data : (json.centres || []);
+        const list = json.data?.centres || [];
         setCentreList(list);
       } catch (err) {
         setFetchError(err.message);
@@ -296,16 +296,16 @@ export default function UpdateCentre() {
   };
 
   return (
-    <div className="bg-slate-900 min-h-screen pb-10">
+    <div className="bg-transparent pb-10">
       
       {/* Header / Selector */}
-      <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700 mb-6">
-        <h2 className="text-xl font-bold text-white mb-2">Update Infrastructure Database</h2>
-        <p className="text-sm text-slate-400 mb-6">Select a district and facility to edit telemetry bounds or configuration.</p>
+      <div className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl border border-slate-200 mb-6 shadow-sm">
+        <h2 className="text-xl font-bold text-[#0A192F] mb-2">Update Infrastructure Database</h2>
+        <p className="text-sm text-slate-500 mb-6">Select a district and facility to edit telemetry bounds or configuration.</p>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-300">District</label>
+            <label className="mb-2 block text-sm font-medium text-slate-600">District</label>
             <select value={selectedDistrict} onChange={(e) => setSelectedDistrict(e.target.value)} className={baseInput}>
               <option value="">-- Select --</option>
               {districts.map((d) => (
@@ -314,21 +314,26 @@ export default function UpdateCentre() {
             </select>
           </div>
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-300">Facility</label>
+            <label className="mb-2 block text-sm font-medium text-slate-600">Facility</label>
             <select value={selectedId} onChange={(e) => setSelectedId(e.target.value)} disabled={!selectedDistrict || fetchingList} className={baseInput + ' disabled:opacity-50'}>
               <option value="">{fetchingList ? 'Loading...' : '-- Select --'}</option>
               {centreList.map((c) => (
                 <option key={c._id} value={c._id}>{c.centreName || c.name}</option>
               ))}
             </select>
-            {fetchError && <p className="text-red-400 text-xs mt-1">{fetchError}</p>}
+            {fetchError && <p className="text-red-500 text-xs mt-1">{fetchError}</p>}
           </div>
         </div>
       </div>
 
       {message.text && (
-        <div className={`p-4 mb-6 rounded-xl border ${message.type === 'success' ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400' : 'bg-red-500/20 border-red-500/30 text-red-400'}`}>
-          {message.text}
+        <div className={`p-4 mb-6 rounded-xl border ${message.type === 'success' ? 'bg-teal-50 border-teal-200 text-teal-600' : 'bg-red-50 border-red-200 text-red-500'} flex items-center gap-2`}>
+          {message.type === 'success' ? (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+          ) : (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+          )}
+          <span className="font-medium">{message.text}</span>
         </div>
       )}
 
@@ -336,46 +341,46 @@ export default function UpdateCentre() {
       {formData && (
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Section 1 */}
-          <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700">
-            <h3 className="text-lg font-bold text-white mb-4">Core Specifications</h3>
+          <div className="bg-white/70 backdrop-blur-md p-6 rounded-2xl border border-slate-200 shadow-sm transition-all hover:border-teal-500 hover:shadow-[0_4px_12px_rgba(13,148,136,0.12)]">
+            <h3 className="text-lg font-bold text-[#0A192F] mb-4">Core Specifications</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-300">Name</label>
+                <label className="mb-1 block text-sm font-medium text-slate-600">Name</label>
                 <input type="text" name="centreName" value={formData.centreName} onChange={handleChange} className={baseInput} />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-300">Latitude</label>
+                <label className="mb-1 block text-sm font-medium text-slate-600">Latitude</label>
                 <input type="number" step="any" name="latitude" value={formData.latitude} onChange={handleChange} className={baseInput} />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-300">Longitude</label>
+                <label className="mb-1 block text-sm font-medium text-slate-600">Longitude</label>
                 <input type="number" step="any" name="longitude" value={formData.longitude} onChange={handleChange} className={baseInput} />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-300">PV Rating (W)</label>
+                <label className="mb-1 block text-sm font-medium text-slate-600">PV Rating (W)</label>
                 <input type="number" name="pvRating" value={formData.pvRating} onChange={handleChange} className={baseInput} />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-300">No. Panels</label>
+                <label className="mb-1 block text-sm font-medium text-slate-600">No. Panels</label>
                 <input type="number" name="noOfPanels" value={formData.noOfPanels} onChange={handleChange} className={baseInput} />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-300">Battery Count</label>
+                <label className="mb-1 block text-sm font-medium text-slate-600">Battery Count</label>
                 <input type="number" name="batteryCount" value={formData.batteryCount} onChange={handleChange} className={baseInput} />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-300">Inverter KVA</label>
+                <label className="mb-1 block text-sm font-medium text-slate-600">Inverter KVA</label>
                 <input type="number" step="any" name="inverterRatingKVA" value={formData.inverterRatingKVA} onChange={handleChange} className={baseInput} />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-300">Install Date</label>
+                <label className="mb-1 block text-sm font-medium text-slate-600">Install Date</label>
                 <input type="date" name="dateOfInstallation" value={formData.dateOfInstallation} onChange={handleChange} className={baseInput} />
               </div>
             </div>
           </div>
 
-          <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700">
-             <h3 className="text-lg font-bold text-white mb-4">Site Assets (Updates)</h3>
+          <div className="bg-white/70 backdrop-blur-md p-6 rounded-2xl border border-slate-200 shadow-sm transition-all hover:border-teal-500 hover:shadow-[0_4px_12px_rgba(13,148,136,0.12)]">
+             <h3 className="text-lg font-bold text-[#0A192F] mb-4">Site Assets (Updates)</h3>
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {[
                   { label: 'Site Image',              name: 'siteImage' },
@@ -387,7 +392,7 @@ export default function UpdateCentre() {
                   { label: 'Inverter Rating Nameplate',name: 'inverterRatingImageUrl' },
                 ].map(f => (
                   <div key={f.name}>
-                    <label className="mb-1 block text-sm font-medium text-slate-300">{f.label}</label>
+                    <label className="mb-1 block text-sm font-medium text-slate-600">{f.label}</label>
                     <input type="file" accept="image/*" onChange={handleImageChange(f.name)} className={fileInputClass} />
                   </div>
                 ))}
@@ -395,8 +400,9 @@ export default function UpdateCentre() {
           </div>
 
           <div className="flex justify-end">
-            <button type="submit" disabled={isSubmitting} className="px-8 py-3 bg-rose-600 hover:bg-rose-500 text-white rounded-xl font-bold shadow-[0_0_20px_rgba(225,29,72,0.4)] transition-all">
-              {isSubmitting ? 'Pushing Updates...' : 'Commit Changes'}
+            <button type="submit" disabled={isSubmitting} className="w-full md:w-auto px-8 py-3 min-h-[44px] bg-teal-600 hover:bg-teal-700 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed text-white rounded-lg font-bold transition-all flex items-center justify-center gap-2">
+              {isSubmitting && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>}
+              {isSubmitting ? 'Saving...' : 'Commit Changes'}
             </button>
           </div>
         </form>

@@ -98,7 +98,7 @@ export default function AccessRequestForm() {
 
   if (status === 'success') {
     return (
-      <div className="flex flex-col items-center justify-center p-8 text-center animate-in fade-in zoom-in duration-500">
+      <div className="flex flex-col items-center justify-center p-8 text-center">
         <div className="p-4 bg-emerald-100 text-emerald-600 rounded-full mb-4">
           <CheckCircle size={48} />
         </div>
@@ -130,14 +130,14 @@ export default function AccessRequestForm() {
             <button
               type="button"
               onClick={() => setSelectedRole('staff')}
-              className={`p-3 text-sm font-bold border-2 rounded-xl transition-all ${selectedRole === 'staff' ? 'border-indigo-600 bg-indigo-50 text-indigo-700' : 'border-slate-200 text-slate-600 hover:border-slate-300'}`}
+              className={`p-3 min-h-[44px] text-sm font-bold border-2 rounded-xl transition-all ${selectedRole === 'staff' ? 'border-indigo-600 bg-indigo-50 text-indigo-700' : 'border-slate-200 text-slate-600 hover:border-slate-300'}`}
             >
               Facility Staff
             </button>
             <button
               type="button"
               onClick={() => setSelectedRole('admin')}
-              className={`p-3 text-sm font-bold border-2 rounded-xl transition-all ${selectedRole === 'admin' ? 'border-rose-600 bg-rose-50 text-rose-700' : 'border-slate-200 text-slate-600 hover:border-slate-300'}`}
+              className={`p-3 min-h-[44px] text-sm font-bold border-2 rounded-xl transition-all ${selectedRole === 'admin' ? 'border-rose-600 bg-rose-50 text-rose-700' : 'border-slate-200 text-slate-600 hover:border-slate-300'}`}
             >
               Facility Admin
             </button>
@@ -184,7 +184,7 @@ export default function AccessRequestForm() {
         <button
           type="submit"
           disabled={loading || !selectedInstitute}
-          className="w-full py-3 px-4 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl shadow-lg shadow-slate-900/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-6"
+          className="w-full py-3 px-4 min-h-[44px] bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl shadow-lg shadow-slate-900/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-6"
         >
           {loading ? <Loader2 className="animate-spin" size={20} /> : 'Submit Request'}
         </button>

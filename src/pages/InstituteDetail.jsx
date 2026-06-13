@@ -7,7 +7,7 @@ import {
   Wifi, TrendingUp, TrendingDown, MoreHorizontal, MapPin
 } from 'lucide-react'
 import IoTMonitor from '../components/IoTMonitor'
-import SolarForecast from './SolarForecast' 
+ 
 
 // --- FUTURISTIC SVG PATTERN GENERATORS ---
 const generateCircuitGrid = () => {
@@ -53,6 +53,7 @@ export default function InstituteDetail() {
   const [reportDescription, setReportDescription] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSolarExpanded, setIsSolarExpanded] = useState(false)
+  const [liveWeather, setLiveWeather] = useState(null)
 
   useEffect(() => {
     if (inst) return;
@@ -88,6 +89,22 @@ export default function InstituteDetail() {
     fetchInst()
   }, [id, inst])
 
+  useEffect(() => {
+    if (inst?.latitude && inst?.longitude && !liveWeather) {
+      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${inst.latitude}&longitude=${inst.longitude}&current=temperature_2m,relative_humidity_2m`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.current) {
+            setLiveWeather({
+              temp: data.current.temperature_2m,
+              humidity: data.current.relative_humidity_2m
+            })
+          }
+        })
+        .catch(err => console.error("Weather fetch error:", err))
+    }
+  }, [inst, liveWeather])
+
   const handleOpenReport = (componentName) => {
     setReportComponent(componentName)
     setIsModalOpen(true)
@@ -115,7 +132,7 @@ export default function InstituteDetail() {
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50">
-      <div className="w-12 h-12 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin" />
+      <div className="w-12 h-12 border-4 border-teal-200 border-t-teal-600 rounded-full animate-spin" />
     </div>
   )
 
@@ -124,15 +141,54 @@ export default function InstituteDetail() {
       <ShieldAlert size={48} className="text-amber-500 mb-4" />
       <h2 className="text-2xl font-bold mb-2">Facility Data Unavailable</h2>
       <p className="text-slate-500 mb-6">We could not locate the infrastructure data for this facility.</p>
-      <button onClick={() => navigate(-1)} className="px-6 py-3 rounded-xl bg-purple-600 text-white font-bold">Return to Dashboard</button>
+      <button onClick={() => navigate(-1)} className="px-6 py-3 rounded-xl bg-teal-600 text-white font-bold">Return to Dashboard</button>
     </div>
   )
 
+  let dynamicGeneration = inst.pvRating || 10;
+  let dynamicEfficiency = 85;
+  if (inst.actualsolargeneration && inst.solargeneration && inst.actualsolargeneration.length > 0 && inst.solargeneration.length > 0) {
+    const lastGen = inst.actualsolargeneration[inst.actualsolargeneration.length - 1].generation;
+    const estGen = inst.solargeneration[inst.solargeneration.length - 1].generation;
+    dynamicGeneration = lastGen || inst.pvRating;
+    dynamicEfficiency = estGen > 0 ? Math.min(100, Math.round((lastGen / estGen) * 100)) : 85;
+  }
+
+  // --- MOCK BATTERY TELEMETRY ---
+  let dynamicBatteryLevel = inst.battery?.level || 95;
+  let dynamicBatteryHealth = inst.battery?.health || 'Optimal';
+  
+  if (inst.battery && inst.battery.capacityAh) {
+    const hour = new Date().getHours();
+    let baseLevel = 100;
+    
+    // Simulate day/night cycle: 6 PM to 6 AM discharging, 6 AM to 6 PM charging.
+    if (hour >= 18 || hour < 6) {
+       const hoursSinceSunset = hour >= 18 ? (hour - 18) : (hour + 6);
+       // Battery capacity factor: Larger battery drains slightly slower in our mock.
+       const totalCapacityWh = (inst.battery.count || 1) * (inst.battery.voltage || 12) * inst.battery.capacityAh;
+       const drainRate = Math.max(4, 10 - (totalCapacityWh / 5000)); // Arbitrary formula for variation
+       baseLevel = Math.max(15, 100 - (hoursSinceSunset * drainRate));
+    } else {
+       const hoursSinceSunrise = hour - 6;
+       baseLevel = Math.min(100, 20 + (hoursSinceSunrise * 15));
+    }
+
+    // Add pseudo-random variance per institute
+    const charCodeSum = (inst._id || '123').toString().split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const variance = (charCodeSum + hour) % 8; // 0 to 7
+    
+    dynamicBatteryLevel = Math.max(0, Math.min(100, Math.round(baseLevel - variance)));
+    
+    const isCharging = (hour >= 6 && hour < 17);
+    dynamicBatteryHealth = isCharging ? 'Charging (Solar)' : (dynamicBatteryLevel < 30 ? 'Critical Low' : 'Discharging');
+  }
+
   inst = {
     ...inst,
-    solarGrid: inst.solarGrid || { generation: inst.pvRating || 10, efficiency: 85, statusDesc: 'Stable' },
-    battery: { ...inst.battery, level: 95, health: 'Optimal' },
-    infraClimate: inst.infraClimate || { temp: 28, humidity: 45 },
+    solarGrid: { generation: dynamicGeneration, efficiency: dynamicEfficiency, statusDesc: dynamicEfficiency > 70 ? 'Optimal Output' : 'Low Output' },
+    battery: { ...inst.battery, level: dynamicBatteryLevel, health: dynamicBatteryHealth },
+    infraClimate: liveWeather || { temp: 28, humidity: 45 },
     equipmentHealth: inst.equipmentHealth || { statusDesc: 'Stable', medicineFridgeTemp: 4 }
   }
 
@@ -149,7 +205,7 @@ export default function InstituteDetail() {
 
   const MetricRow = ({ label, value, isAlert }) => (
     <div className="flex items-center justify-between py-3 border-b border-white/20 last:border-0">
-      <span className="text-xs font-bold tracking-wider uppercase text-purple-950/60">{label}</span>
+      <span className="text-xs font-bold tracking-wider uppercase text-slate-800/60">{label}</span>
       <span className={`text-base font-extrabold ${isAlert ? 'text-red-600' : 'text-black'}`}>{value}</span>
     </div>
   )
@@ -163,25 +219,19 @@ export default function InstituteDetail() {
   return (
     <div className="relative min-h-screen overflow-hidden font-sans">
       {/* ── BACKGROUND ── */}
-      <div className="absolute inset-0 -z-10" style={{ background: `linear-gradient(135deg, #7C3AED 0%, #A855F7 18%, #C084FC 35%, #D946EF 52%, #EC4899 72%, #F9A8D4 88%, #FFF7FC 100%)` }} />
-      <div className="fixed top-[-10rem] left-[-10rem] w-[40rem] h-[40rem] rounded-full bg-violet-600/30 blur-[150px] pointer-events-none" />
-      <div className="fixed bottom-[-10rem] right-[-10rem] w-[40rem] h-[40rem] rounded-full bg-fuchsia-600/30 blur-[150px] pointer-events-none" />
+            <div className="fixed top-[-10rem] left-[-10rem] w-[40rem] h-[40rem] rounded-full bg-slate-200/40 blur-[150px] pointer-events-none" />
+      <div className="fixed bottom-[-10rem] right-[-10rem] w-[40rem] h-[40rem] rounded-full hidden blur-[150px] pointer-events-none" />
 
       {/* ── MAIN CONTENT ── */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 py-8 lg:px-8 pb-32">
-        
-        {/* Navigation */}
-        <button onClick={() => navigate(-1)} className="flex items-center gap-2 mb-10 text-sm font-bold text-purple-950 hover:text-black transition-colors hover:scale-105 origin-left">
-          <ArrowLeft size={18} strokeWidth={2.5} /> Back
-        </button>
+      <div className="relative z-10 max-w-7xl mx-auto px-4 pt-[92px] pb-32 lg:px-8">
 
         {/* ── HERO HEADER ── */}
         <header className="text-center mb-16 flex flex-col items-center">
           <div className="flex items-center justify-center gap-3 mb-6">
-            <span className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest bg-white/30 backdrop-blur-md border border-white/50 text-purple-950 shadow-sm hover:scale-105 transition-transform">
+            <span className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest bg-white/30 backdrop-blur-md border border-white/50 text-slate-800 shadow-sm hover:scale-105 transition-transform">
               <MapPin size={14} /> {inst.district} District
             </span>
-            <span className="px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest bg-purple-600/10 backdrop-blur-md border border-purple-500/20 text-purple-900 shadow-sm hover:scale-105 transition-transform">
+            <span className="px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest bg-slate-800/10 backdrop-blur-md border border-slate-500/20 text-slate-800 shadow-sm hover:scale-105 transition-transform">
               {inst.type} Facility
             </span>
             <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 backdrop-blur-md border border-emerald-500/20 shadow-sm hover:scale-105 transition-transform">
@@ -189,10 +239,16 @@ export default function InstituteDetail() {
               <span className="text-xs font-black uppercase tracking-widest text-emerald-700">Live Telemetry</span>
             </div>
           </div>
-          <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-violet-950 via-fuchsia-950 to-pink-900 mb-4 text-center px-4 leading-tight capitalize">
+          {inst.images?.siteImageUrl && (
+            <div className="w-full max-w-4xl h-64 md:h-96 rounded-3xl overflow-hidden mb-8 shadow-2xl relative group">
+              <div className="absolute inset-0 bg-slate-900/20 group-hover:bg-transparent transition-colors duration-500 z-10" />
+              <img src={inst.images.siteImageUrl} alt={inst.name} className="w-full h-full object-cover" />
+            </div>
+          )}
+          <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-slate-900 mb-4 text-center px-4 leading-tight capitalize">
             {inst.name}
           </h1>
-          <p className="text-lg font-bold text-purple-950/70 max-w-2xl mx-auto">
+          <p className="text-lg font-bold text-slate-800/70 max-w-2xl mx-auto">
             Real-Time Solar Infrastructure Monitoring & AI Climate Forecast
           </p>
         </header>
@@ -201,8 +257,8 @@ export default function InstituteDetail() {
         <div className="flex flex-wrap justify-center gap-8 mb-12">
           {[
             { label: 'Solar Efficiency', value: `${inst.solarGrid.efficiency}%`, sub: `${inst.solarGrid.generation} kW generation`, icon: BatteryCharging, color: 'text-amber-600', bg: 'bg-amber-500/20', trend: inst.solarGrid.efficiency < 50 ? 'down' : 'up' },
-            { label: 'Battery Backup', value: `${inst.battery.level}%`, sub: inst.battery.health, icon: Power, color: 'text-purple-600', bg: 'bg-purple-500/20', trend: inst.battery.level < 30 ? 'down' : 'up' },
-            { label: 'Infra Temp', value: `${inst.infraClimate.temp}°C`, sub: `Humidity ${inst.infraClimate.humidity}%`, icon: ThermometerSun, color: 'text-pink-600', bg: 'bg-pink-500/20', trend: inst.infraClimate.temp > 35 ? 'down' : 'up' },
+            { label: 'Battery Backup', value: `${inst.battery.level}%`, sub: inst.battery.health, icon: Power, color: 'text-teal-600', bg: 'bg-teal-500/20', trend: inst.battery.level < 30 ? 'down' : 'up' },
+            { label: 'Infra Temp', value: `${inst.infraClimate.temp}°C`, sub: `Humidity ${inst.infraClimate.humidity}%`, icon: ThermometerSun, color: 'text-teal-600', bg: 'bg-teal-500/20', trend: inst.infraClimate.temp > 35 ? 'down' : 'up' },
           ].map((m, i) => (
             <div key={i} className={`${flexCardWidth} ${glassCardClass} p-8 relative overflow-hidden group`}>
               <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -217,8 +273,8 @@ export default function InstituteDetail() {
                   </div>
                 </div>
                 <div className="text-5xl font-extrabold text-black tracking-tight mb-2">{m.value}</div>
-                <div className="text-sm font-bold tracking-widest uppercase text-purple-950/60 mb-1">{m.label}</div>
-                <div className="text-xs font-semibold text-purple-950/40">{m.sub}</div>
+                <div className="text-sm font-bold tracking-widest uppercase text-slate-800/60 mb-1">{m.label}</div>
+                <div className="text-xs font-semibold text-slate-800/40">{m.sub}</div>
               </div>
             </div>
           ))}
@@ -263,7 +319,7 @@ export default function InstituteDetail() {
                   ) : (
                     <ReportBtn name="Solar Grid" stopProp />
                   )}
-                  <button className="p-2 text-purple-950/60 hover:text-black transition-colors"><MoreHorizontal size={20} /></button>
+                  <button className="p-2 text-slate-800/60 hover:text-black transition-colors"><MoreHorizontal size={20} /></button>
                 </div>
               </div>
 
@@ -293,14 +349,14 @@ export default function InstituteDetail() {
             <div className="relative z-10 flex flex-col h-full">
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-pink-500/20 flex items-center justify-center border border-white/30 backdrop-blur-md">
-                    <ThermometerSun size={24} className="text-pink-600" />
+                  <div className="w-12 h-12 rounded-2xl bg-teal-500/20 flex items-center justify-center border border-white/30 backdrop-blur-md">
+                    <ThermometerSun size={24} className="text-teal-600" />
                   </div>
                   <h3 className="text-lg font-black text-black tracking-tight">Facility Climate</h3>
                 </div>
                 <div className="flex items-center gap-3">
                   <ReportBtn name="Climate" />
-                  <button className="p-2 text-purple-950/60 hover:text-black transition-colors"><MoreHorizontal size={20} /></button>
+                  <button className="p-2 text-slate-800/60 hover:text-black transition-colors"><MoreHorizontal size={20} /></button>
                 </div>
               </div>
               <StatusPill isCritical={inst.infraClimate.temp > 40} text={`Ambient: ${inst.infraClimate.temp}°C`} />
@@ -325,18 +381,18 @@ export default function InstituteDetail() {
                   </div>
                   <div className="flex items-center gap-3">
                     <ReportBtn name="Cold Chain" />
-                    <button className="p-2 text-purple-950/60 hover:text-black transition-colors"><MoreHorizontal size={20} /></button>
+                    <button className="p-2 text-slate-800/60 hover:text-black transition-colors"><MoreHorizontal size={20} /></button>
                   </div>
                 </div>
                 <StatusPill isCritical={inst.equipmentHealth.medicineFridgeTemp > 8 || inst.equipmentHealth.medicineFridgeTemp < 2} text={inst.equipmentHealth.statusDesc} />
                 <div className="flex-grow flex flex-col justify-end mt-4">
                   <div className="p-5 rounded-2xl bg-white/20 border border-white/40 backdrop-blur-md">
-                    <div className="text-xs font-bold tracking-widest uppercase text-purple-950/60 mb-2">Medicine Storage</div>
+                    <div className="text-xs font-bold tracking-widest uppercase text-slate-800/60 mb-2">Medicine Storage</div>
                     <div className="flex items-end justify-between">
                       <span className="text-3xl font-extrabold text-black">{inst.equipmentHealth.medicineFridgeTemp}°C</span>
                       <span className="text-xs font-bold px-3 py-1 rounded-full bg-red-500/20 text-red-800 border border-red-500/30">CRITICAL</span>
                     </div>
-                    <div className="mt-3 text-xs font-semibold text-purple-950/50">Safe threshold: 2°C – 8°C</div>
+                    <div className="mt-3 text-xs font-semibold text-slate-800/50">Safe threshold: 2°C – 8°C</div>
                   </div>
                 </div>
               </div>
@@ -344,44 +400,39 @@ export default function InstituteDetail() {
           )}
         </div>
 
-        {/* ── ML FORECAST COMPONENT ── */}
-        <div className="mt-16">
-           <SolarForecast district={inst.district} centre={inst.name} />
-        </div>
-
       </div>
 
       {/* ── AI FLOATING BUTTON ── */}
       {inst && (
         <button
-          className="fixed bottom-8 left-8 z-50 flex items-center gap-3 px-6 py-4 rounded-2xl border border-white/50 bg-white/30 backdrop-blur-xl shadow-[0_8px_32px_rgba(124,58,237,0.3)] hover:bg-white/50 hover:scale-105 hover:-translate-y-1 transition-all duration-300 group"
+          className="fixed bottom-8 left-8 z-50 flex items-center gap-3 px-6 py-4 rounded-2xl border border-white/50 bg-white/30 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.15)] hover:bg-white/50 hover:scale-105 hover:-translate-y-1 transition-all duration-300 group"
           onClick={() => navigate('/AIChat', { state: { institute: inst } })}
         >
           <span className="relative flex w-3 h-3">
-            <span className="absolute inline-flex w-full h-full rounded-full opacity-75 bg-purple-600 animate-ping" />
-            <span className="relative inline-flex w-3 h-3 rounded-full bg-purple-700" />
+            <span className="absolute inline-flex w-full h-full rounded-full opacity-75 bg-slate-800 animate-ping" />
+            <span className="relative inline-flex w-3 h-3 rounded-full bg-slate-900" />
           </span>
-          <span className="text-sm font-black tracking-wide text-purple-950 uppercase">AI Copilot</span>
+          <span className="text-sm font-black tracking-wide text-slate-900 uppercase">AI Copilot</span>
         </button>
       )}
 
       {/* ── REPORT MODAL ── */}
       {isModalOpen && (
-        <div onClick={() => setIsModalOpen(false)} className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-purple-950/40 backdrop-blur-sm">
+        <div onClick={() => setIsModalOpen(false)} className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
           <div onClick={e => e.stopPropagation()} className="w-full max-w-lg p-8 rounded-[2rem] bg-white/40 backdrop-blur-2xl border border-white/50 shadow-2xl">
             <div className="flex items-center justify-between mb-8">
               <div>
                 <h3 className="text-2xl font-black text-black">Report Anomaly</h3>
-                <p className="text-sm font-bold text-purple-950/60 mt-1">{reportComponent} Module</p>
+                <p className="text-sm font-bold text-slate-800/60 mt-1">{reportComponent} Module</p>
               </div>
               <button onClick={() => setIsModalOpen(false)} className="p-2 rounded-full bg-white/40 hover:bg-white/60 text-black transition-colors">
                 <X size={20} />
               </button>
             </div>
             <form onSubmit={submitReport}>
-              <label className="block text-xs font-black tracking-widest uppercase text-purple-950/60 mb-3">Incident Details</label>
-              <textarea required rows={4} value={reportDescription} onChange={e => setReportDescription(e.target.value)} placeholder="Describe the hardware failure, damage, or metric anomaly..." className="w-full p-5 mb-6 rounded-2xl bg-white/30 border border-white/50 text-black font-medium placeholder-purple-950/30 focus:outline-none focus:ring-2 focus:ring-purple-500/50 resize-none" />
-              <button type="submit" disabled={isSubmitting} className="w-full py-4 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white text-sm font-black uppercase tracking-widest shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-[1.02] transition-all disabled:opacity-50 disabled:hover:scale-100">
+              <label className="block text-xs font-black tracking-widest uppercase text-slate-800/60 mb-3">Incident Details</label>
+              <textarea required rows={4} value={reportDescription} onChange={e => setReportDescription(e.target.value)} placeholder="Describe the hardware failure, damage, or metric anomaly..." className="w-full p-5 mb-6 rounded-2xl bg-white/30 border border-white/50 text-black font-medium placeholder-slate-900/30 focus:outline-none focus:ring-2 focus:ring-teal-500/50 resize-none" />
+              <button type="submit" disabled={isSubmitting} className="w-full py-4 rounded-xl bg-slate-900 text-white text-sm font-black uppercase tracking-widest shadow-lg shadow-teal-500/30 hover:shadow-teal-500/50 hover:scale-[1.02] transition-all disabled:opacity-50 disabled:hover:scale-100">
                 {isSubmitting ? 'Transmitting...' : 'Submit Official Report'}
               </button>
             </form>

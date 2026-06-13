@@ -38,7 +38,7 @@ export default function Hero() {
   }
 
   return (
-    <section id="hero" className="relative h-screen w-full flex items-center justify-center overflow-hidden bg-slate-900 rounded-[24px]">
+    <section id="hero" className="relative h-screen w-full flex items-center justify-center overflow-hidden bg-[#1C1C1C] rounded-[24px]">
       {/* Background Media Container */}
       <div className="absolute inset-0 z-0">
         <video 
@@ -69,7 +69,7 @@ export default function Hero() {
           </motion.h1>
 
           <motion.div variants={item}>
-            <button className="flex items-center justify-between gap-4 pl-6 pr-1 py-1 rounded-full bg-[#C9DC6A] hover:bg-[#B8CD59] transition-transform active:scale-95 text-slate-900 font-bold text-lg mt-4">
+            <button className="flex items-center justify-between gap-4 pl-6 pr-1 py-1 rounded-full bg-[#C9DC6A] hover:bg-[#B8CD59] transition-transform active:scale-95 text-[#1C1C1C] font-bold text-lg mt-4">
               Explore Platform
               <span className="w-12 h-12 rounded-full bg-[#1A3028] flex items-center justify-center">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

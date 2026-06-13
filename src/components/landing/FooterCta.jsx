@@ -40,7 +40,7 @@ export default function FooterCta() {
         
         <button
           onClick={() => navigate('/signUp')}
-          className="flex items-center justify-between gap-4 pl-8 pr-2 py-2 rounded-full bg-[#C9DC6A] hover:bg-[#B8CD59] transition-transform active:scale-95 text-slate-900 font-bold text-xl shadow-2xl shadow-[#C9DC6A]/20"
+          className="flex items-center justify-between gap-4 pl-8 pr-2 py-2 rounded-full bg-[#C9DC6A] hover:bg-[#B8CD59] transition-transform active:scale-95 text-[#1C1C1C] font-bold text-xl shadow-2xl shadow-[#C9DC6A]/20"
         >
           Join Resilo Today
           <span className="w-14 h-14 rounded-full bg-[#1A3028] flex items-center justify-center">
@@ -56,6 +56,7 @@ export default function FooterCta() {
           <div className="flex gap-6 mt-4 md:mt-0">
             <a href="#" className="hover:text-white transition-colors">Privacy</a>
             <a href="#" className="hover:text-white transition-colors">Terms</a>
+            <button onClick={() => navigate('/api-docs')} className="hover:text-white transition-colors">API Docs</button>
             <a href="#" className="hover:text-white transition-colors">Contact</a>
           </div>
         </div>
